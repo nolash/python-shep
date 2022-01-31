@@ -33,6 +33,8 @@ class State:
 
 
     def __check_name(self, k):
+        if not k.isalpha():
+            raise ValueError('only alpha')
         k = k.upper()
         try:
             getattr(self, k)
@@ -88,11 +90,13 @@ class State:
         self.__set(k, v)
 
 
-#    def all(self):
-#        l = []
-#        for k in dir(self):
-#            if k[0] == '_':
-#                continue
-#            if k.upper() != k:
-#                continue
-#            l.append(k)
+    def all(self):
+        l = []
+        for k in dir(self):
+            if k[0] == '_':
+                continue
+            if k.upper() != k:
+                continue
+            l.append(k)
+        l.sort()
+        return l

@@ -11,6 +11,19 @@ from schiz.error import (
 
 class TestState(unittest.TestCase):
 
+    def test_key_check(self):
+        states = State(3)
+        states.add('foo')
+
+        for k in [
+                'f0o',
+                'f oo',
+                'f_oo',
+            ]:
+            with self.assertRaises(ValueError):
+                states.add(k)
+
+
     def test_get(self):
         states = State(3)
         states.add('foo')
@@ -61,7 +74,6 @@ class TestState(unittest.TestCase):
         states.add('bar')
         with self.assertRaises(StateInvalid):
             states.alias('baz', 5)
-
 
 
 if __name__ == '__main__':
