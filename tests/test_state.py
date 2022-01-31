@@ -2,8 +2,8 @@
 import unittest
 
 # local imports
-from schiz import State
-from schiz.error import (
+from shep import State
+from shep.error import (
         StateExists,
         StateInvalid,
         )
@@ -65,7 +65,7 @@ class TestState(unittest.TestCase):
     def test_alias_nopure(self):
         states = State(3)
         with self.assertRaises(ValueError):
-            states.alias('foo', 4)
+            states.alias('foo', 1)
 
 
     def test_alias_cover(self):

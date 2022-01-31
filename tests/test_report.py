@@ -2,8 +2,8 @@
 import unittest
 
 # local imports
-from schiz import State
-from schiz.error import (
+from shep import State
+from shep.error import (
         StateExists,
         StateInvalid,
         )

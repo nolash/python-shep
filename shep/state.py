@@ -3,7 +3,7 @@ import enum
 import logging
 
 # local imports
-from schiz.error import (
+from shep.error import (
         StateExists,
         StateInvalid,
         )
@@ -44,30 +44,25 @@ class State:
         return k
 
 
-    def __check_cover(self, v):
-        z = 0
-        c = 1
-        for i in range(self.__bits):
-            if c & v > 0:
-                if self.__reverse.get(c) == None:
-                    raise StateInvalid(v)
-            c <<= 1
-        return c == v
-
-
-    def __check_value(self, v):
+    def __check_valid(self, v):
         v = int(v)
         if self.__reverse.get(v):
             raise StateValueExists(v)
+        return v
+
+
+    def __check_value(self, v):
+        v = self.__check_valid(v)
         if v > self.__limit:
             raise OverflowError(v)
         return v
 
 
-    def __check(self, k, v):
-        k = self.__check_name(k)
-        v = self.__check_value(v)
-        return (k, v,)
+    def __check_value_cursor(self, v):
+        v = self.__check_valid(v)
+        if v > 1 << self.__c:
+            raise StateInvalid(v)
+        return v
 
 
     def __set(self, k, v):
@@ -78,15 +73,16 @@ class State:
 
     def add(self, k):
         v = 1 << self.__c
-        (k, v) = self.__check(k, v)
+        k = self.__check_name(k)
+        v = self.__check_value(v)
         self.__set(k, v)
         
 
     def alias(self, k, v):
-        (k, v) = self.__check(k, v)
+        k = self.__check_name(k)
+        v = self.__check_value_cursor(v)
         if self.__is_pure(v):
             raise ValueError('use add to add pure values')
-        self.__check_cover(v) 
         self.__set(k, v)
 
 
@@ -100,3 +96,19 @@ class State:
             l.append(k)
         l.sort()
         return l
+
+
+    def have(self, v):
+        r = []
+        m = self.__reverse.get(k)
+        if m != None:
+            r.append(m)
+        c = 1
+        for i in range(self.__bits):
+            if v & c > 0:
+                self.__check_value_cursor(c)
+                k = self.__reverse[c]
+                r.append(k)
+            c <<= 1
+
+        return r
