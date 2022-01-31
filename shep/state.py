@@ -1,22 +1,23 @@
-# standard imports
-import enum
-
 # local imports
 from shep.error import (
         StateExists,
         StateInvalid,
+        StateItemExists,
+        StateItemNotFound,
         )
 
 
 class State:
 
-    def __init__(self, bits, logger=None, store=None):
+    def __init__(self, bits, logger=None, store_factory=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
         self.__reverse = {}
-        self.__logger = logger
-        self.__store = store
+
+        self.NEW = 0
+        self.__items = {self.NEW: []}
+        self.__items_reverse = {}
 
 
     def __is_pure(self, v):
@@ -28,9 +29,13 @@ class State:
         return c == v
 
 
-    def __check_name(self, k):
+    def __check_name_valid(self, k):
         if not k.isalpha():
             raise ValueError('only alpha')
+
+    def __check_name(self, k):
+        self.__check_name_valid(k) 
+
         k = k.upper()
         try:
             getattr(self, k)
@@ -65,6 +70,31 @@ class State:
         setattr(self, k, v)
         self.__reverse[v] = k
         self.__c += 1
+
+
+    def __check_item(self, item):
+        if self.__items_reverse.get(item) != None:
+            raise StateItemExists(item)
+
+
+    def __add_state_list(self, state, item):
+        if self.__items.get(state) == None:
+            self.__items[state] = []
+        self.__items[state].append(item)
+        self.__items_reverse[item] = state
+
+
+    def __state_list_index(self, item, state_list):
+        idx = -1
+        try:
+            idx = state_list.index(item)
+        except ValueError:
+            pass
+
+        if idx == -1:
+            raise StateCorruptionError() # should have state int here as value
+
+        return idx
 
 
     def add(self, k):
@@ -111,3 +141,56 @@ class State:
             c <<= 1
 
         return (alias, r,)
+
+
+    def put(self, item, state=None):
+        if state == None:
+            state = self.NEW
+        elif self.__reverse.get(state) == None:
+            raise StateInvalid(state)
+        self.__check_item(item)
+        self.__add_state_list(state, item)
+                                
+
+    def move(self, item, to_state):
+        current_state = self.__items_reverse.get(item)
+        if current_state == None:
+            raise StateItemNotFound(item)
+
+        new_state = self.__reverse.get(to_state)
+        if new_state == None:
+            raise StateInvalid(to_state)
+
+        current_state_list = self.__items.get(current_state)
+        if current_state_list == None:
+            raise StateCorruptionError(current_state)
+
+        idx = self.__state_list_index(item, current_state_list)
+
+        new_state_list = self.__items.get(to_state)
+        if current_state_list == None:
+            raise StateCorruptionError(to_state)
+
+        self.__add_state_list(to_state, item)
+        current_state_list.pop(idx) 
+
+
+
+    def purge(self, item):
+        current_state = self.__items_reverse.get(item)
+        if current_state == None:
+            raise StateItemNotFound(item)
+        del self.__items_reverse[item]
+
+        current_state_list = self.__items.get(current_state)
+        
+        idx = self.__state_list_index(item, current_state_list)
+
+        current_state_list.pop(idx) 
+
+
+    def state(self, item):
+        state = self.__items_reverse.get(item)
+        if state == None:
+            raise StateItemNotFound(item)
+        return state
