@@ -9,13 +9,13 @@ from shep.error import (
 
 class State:
 
-    def __init__(self, bits, logger=None, store_factory=None):
+    def __init__(self, bits, logger=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
-        self.__reverse = {}
-
         self.NEW = 0
+
+        self.__reverse = {0: self.NEW}
         self.__items = {self.NEW: []}
         self.__items_reverse = {}
 
@@ -124,6 +124,15 @@ class State:
         return l
 
 
+    def name(self, v):
+        if v == None:
+            return self.NEW
+        k = self.__reverse.get(v)
+        if k == None:
+            raise StateInvalid(v)
+        return k
+
+
     def match(self, v, pure=False):
         alias = None
         if not pure:
@@ -173,7 +182,6 @@ class State:
 
         self.__add_state_list(to_state, item)
         current_state_list.pop(idx) 
-
 
 
     def purge(self, item):

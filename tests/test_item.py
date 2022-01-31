@@ -74,6 +74,5 @@ class TestStateItems(unittest.TestCase):
             self.states.state(item)
 
 
-
 if __name__ == '__main__':
     unittest.main()
