@@ -1,4 +1,5 @@
 - 0.0.2
 	* Fix rename module name errors
+	* Add listing and matcher
 - 0.0.1
 	* Add bases states and aliases

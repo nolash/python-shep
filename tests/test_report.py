@@ -29,5 +29,26 @@ class TestStateReport(unittest.TestCase):
             getattr(self.states, k)
 
 
+    def test_match(self):
+        r = self.states.match(self.states.FOO)
+        self.assertEqual(getattr(self.states, r[0]), 1)
+
+
+    def test_match_alias(self):
+        self.states.alias('xyzzy', self.states.FOO | self.states.BAZ)
+        r = self.states.match(self.states.XYZZY)
+        for k in ['FOO', 'BAZ', 'XYZZY']:
+            self.assertIn(k, r)
+        self.assertNotIn('BAR', r)
+
+
+    def test_match_alias_pure(self):
+        self.states.alias('xyzzy', self.states.FOO | self.states.BAZ)
+        r = self.states.match(self.states.XYZZY, pure=True)
+        for k in ['FOO', 'BAZ']:
+            self.assertIn(k, r)
+        self.assertNotIn('XYZZY', r)
+
+
 if __name__ == '__main__':
     unittest.main()

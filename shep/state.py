@@ -1,6 +1,5 @@
 # standard imports
 import enum
-import logging
 
 # local imports
 from shep.error import (
@@ -8,21 +7,18 @@ from shep.error import (
         StateInvalid,
         )
 
-logg = logging.getLogger(__name__)
-
 
 class State:
 
-    def __init__(self, bits):
+    def __init__(self, bits, logger=None, store=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
         self.__reverse = {}
+        self.__logger = logger
+        self.__store = store
 
-    def __store(self):
-        pass
 
-    
     def __is_pure(self, v):
         c = 1
         for i in range(self.__bits):
@@ -47,7 +43,7 @@ class State:
     def __check_valid(self, v):
         v = int(v)
         if self.__reverse.get(v):
-            raise StateValueExists(v)
+            raise StateExists(v)
         return v
 
 
@@ -98,17 +94,20 @@ class State:
         return l
 
 
-    def have(self, v):
+    def match(self, v, pure=False):
         r = []
-        m = self.__reverse.get(k)
-        if m != None:
-            r.append(m)
+        if not pure:
+            m = self.__reverse.get(v)
+            if m != None:
+                r.append(m)
         c = 1
         for i in range(self.__bits):
             if v & c > 0:
-                self.__check_value_cursor(c)
-                k = self.__reverse[c]
-                r.append(k)
+                try:
+                    k = self.__reverse[c]
+                    r.append(k)
+                except KeyError:
+                    pass
             c <<= 1
 
         return r
