@@ -1,5 +1,6 @@
 - 0.0.6
 	* Update description
+	* Implement simple file store backend (add only)
 - 0.0.5
 	* Add persistence wrapper
 - 0.0.4
