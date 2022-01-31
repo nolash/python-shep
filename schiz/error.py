@@ -1,0 +1,2 @@
+class StateExists(Exception):
+    pass
