@@ -95,11 +95,11 @@ class State:
 
 
     def match(self, v, pure=False):
-        r = []
+        alias = None
         if not pure:
-            m = self.__reverse.get(v)
-            if m != None:
-                r.append(m)
+            alias = self.__reverse.get(v)
+
+        r = []
         c = 1
         for i in range(self.__bits):
             if v & c > 0:
@@ -110,4 +110,4 @@ class State:
                     pass
             c <<= 1
 
-        return r
+        return (alias, r,)

@@ -1,3 +1,5 @@
+- 0.0.3
+	* Split match to 2-element tuple, returning complex value and simple values separately
 - 0.0.2
 	* Fix rename module name errors
 	* Add listing and matcher

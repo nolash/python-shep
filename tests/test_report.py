@@ -37,17 +37,19 @@ class TestStateReport(unittest.TestCase):
     def test_match_alias(self):
         self.states.alias('xyzzy', self.states.FOO | self.states.BAZ)
         r = self.states.match(self.states.XYZZY)
-        for k in ['FOO', 'BAZ', 'XYZZY']:
-            self.assertIn(k, r)
-        self.assertNotIn('BAR', r)
+        for k in ['FOO', 'BAZ']:
+            self.assertIn(k, r[1])
+        self.assertNotIn('BAR', r[1])
+        self.assertEqual('XYZZY', r[0])
 
 
     def test_match_alias_pure(self):
         self.states.alias('xyzzy', self.states.FOO | self.states.BAZ)
         r = self.states.match(self.states.XYZZY, pure=True)
         for k in ['FOO', 'BAZ']:
-            self.assertIn(k, r)
-        self.assertNotIn('XYZZY', r)
+            self.assertIn(k, r[1])
+        self.assertNotIn('XYZZY', r[1])
+        self.assertIsNone(r[0])
 
 
 if __name__ == '__main__':
