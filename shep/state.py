@@ -249,5 +249,11 @@ class State:
         return state
 
 
-    def get(self, key):
+    def get(self, key=None):
         return self.__contents.get(key)
+
+
+    def list(self, state):
+        if self.__reverse.get(state) == None:
+            raise StateInvalid(state)
+        return self.__keys[state]

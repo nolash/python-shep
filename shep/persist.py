@@ -47,10 +47,3 @@ class PersistedState(State):
 
         self.__stores[k].remove(key)
         super(PersistedState, self).purge(key)
-
-
-    def get(self, key=None):
-        state = self.state(key)
-        k = self.name(state)
-
-        return self.__stores[k].get(key)

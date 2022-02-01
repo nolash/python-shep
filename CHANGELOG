@@ -1,3 +1,6 @@
+- 0.0.9
+	* Add optional overwrite of contents
+	* Add list all keys by state
 - 0.0.8
 	* Add single bit transition to aliases
 - 0.0.7

@@ -50,5 +50,23 @@ class TestStateReport(unittest.TestCase):
         self.assertEqual(self.states.get('abcd'), 'bar')
 
 
+    def test_list(self):
+        self.states.put('abcd', state=self.states.FOO)
+        self.states.put('xx!', state=self.states.FOO)
+        self.states.put('1234', state=self.states.BAR)
+        keys = self.states.list(self.states.FOO)
+        self.assertIn('abcd', keys)
+        self.assertIn('xx!', keys)
+        self.assertNotIn('1234', keys)
+
+        self.states.alias('xyzzy', self.states.BAR | self.states.FOO)
+        self.states.put('yyy', state=self.states.XYZZY)
+
+        keys = self.states.list(self.states.XYZZY)
+        self.assertIn('yyy', keys)
+        self.assertNotIn('1234', keys)
+        self.assertNotIn('xx!', keys)
+        
+
 if __name__ == '__main__':
     unittest.main()
