@@ -1,5 +1,6 @@
 # local imports
 from .state import State
+from .error import StateItemExists
 
 
 class PersistedState(State):
@@ -79,3 +80,13 @@ class PersistedState(State):
 
         self.__stores[k].remove(key)
         super(PersistedState, self).purge(key)
+
+
+    def sync(self, state):
+        k = self.name(state)
+
+        for o in self.__stores[k].list():
+            try:
+                super(PersistedState, self).put(o[0], state=state, contents=o[1])
+            except StateItemExists:
+                pass

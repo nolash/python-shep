@@ -44,6 +44,19 @@ class SimpleFileStore:
         return r
 
 
+    def list(self):
+        files = []
+        for p in os.listdir(self.path):
+            fp = os.path.join(self.path, p)
+            f = open(fp, 'r')
+            r = f.read()
+            f.close()
+            if len(r) == 0:
+                r = None
+            files.append((p, r,))
+        return files
+
+
 class SimpleFileStoreFactory:
 
     def __init__(self, path):

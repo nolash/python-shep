@@ -117,5 +117,25 @@ class TestStateReport(unittest.TestCase):
             os.stat(fp)
 
 
+    def test_sync(self):
+        self.states.put('abcd', state=self.states.FOO, contents='foo')
+        self.states.put('xxx', state=self.states.FOO)
+        self.states.put('yyy', state=self.states.FOO)
+       
+        fp = os.path.join(self.d, 'FOO', 'yyy')
+        f = open(fp, 'w')
+        f.write('')
+        f.close()
+
+        fp = os.path.join(self.d, 'FOO', 'zzzz')
+        f = open(fp, 'w')
+        f.write('xyzzy')
+        f.close()
+
+        self.states.sync(self.states.FOO)
+        self.assertEqual(self.states.get('yyy'), None)
+        self.assertEqual(self.states.get('zzzz'), 'xyzzy')
+        
+
 if __name__ == '__main__':
     unittest.main()
