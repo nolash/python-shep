@@ -21,7 +21,7 @@ class MockStore:
         self.for_state = 0
 
 
-    def add(self, k, contents):
+    def add(self, k, contents=None, force=False):
         self.v[k] = contents
 
 

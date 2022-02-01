@@ -15,12 +15,12 @@ class PersistedState(State):
             self.__stores[k] = self.__store_factory(k)
 
 
-    def put(self, key, contents=None, state=None):
+    def put(self, key, contents=None, state=None, force=False):
         k = self.name(state)
         self.__ensure_store(k)
-        self.__stores[k].add(key, contents)
+        self.__stores[k].add(key, contents, force=force)
 
-        super(PersistedState, self).put(key, state=state, contents=contents)
+        super(PersistedState, self).put(key, state=state, contents=contents, force=force)
 
 
     def move(self, key, to_state):
@@ -49,8 +49,8 @@ class PersistedState(State):
         super(PersistedState, self).purge(key)
 
 
-    def get(self, key):
+    def get(self, key=None):
         state = self.state(key)
         k = self.name(state)
 
-        self.__stores[k].get(k)
+        return self.__stores[k].get(key)

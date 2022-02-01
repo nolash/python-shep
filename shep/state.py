@@ -152,15 +152,20 @@ class State:
 
         return (alias, r,)
 
-
-    def put(self, key, state=None, contents=None):
+    
+    def put(self, key, state=None, contents=None, force=False):
         if state == None:
             state = self.NEW
         elif self.__reverse.get(state) == None:
             raise StateInvalid(state)
-        self.__check_key(key)
+        try:
+            self.__check_key(key)
+        except StateItemExists as e:
+            if not force:
+                raise(e)
         self.__add_state_list(state, key)
-        self.__contents[key] = contents
+        if contents != None:
+            self.__contents[key] = contents
                                 
 
     def move(self, key, to_state):
@@ -245,4 +250,4 @@ class State:
 
 
     def get(self, key):
-        return self.__contents[key]
+        return self.__contents.get(key)

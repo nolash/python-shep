@@ -76,7 +76,7 @@ class TestStateItems(unittest.TestCase):
 
     def test_item_get(self):
         item = b'foo'
-        self.states.put(item, self.states.BAZ, contents='bar')
+        self.states.put(item, state=self.states.BAZ, contents='bar')
         self.assertEqual(self.states.state(item), self.states.BAZ)
         v = self.states.get(item)
         self.assertEqual(v, 'bar')
@@ -84,26 +84,26 @@ class TestStateItems(unittest.TestCase):
 
     def test_item_set(self):
         item = b'foo'
-        self.states.put(item, self.states.FOO)
+        self.states.put(item, state=self.states.FOO)
         self.states.set(item, self.states.BAR)
         self.assertEqual(self.states.state(item), self.states.PLUGH)
 
 
     def test_item_set_invalid(self):
         item = b'foo'
-        self.states.put(item, self.states.FOO)
+        self.states.put(item, state=self.states.FOO)
         with self.assertRaises(StateInvalid):
             self.states.set(item, self.states.BAZ)
 
         item = b'bar'
-        self.states.put(item, self.states.BAR)
+        self.states.put(item, state=self.states.BAR)
         with self.assertRaises(ValueError):
             self.states.set(item, self.states.XYZZY)
 
 
     def test_item_set_invalid(self):
         item = b'foo'
-        self.states.put(item, self.states.XYZZY)
+        self.states.put(item, state=self.states.XYZZY)
         self.states.unset(item, self.states.BAZ)
         self.assertEqual(self.states.state(item), self.states.BAR)
 
@@ -115,6 +115,23 @@ class TestStateItems(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.states.unset(item, self.states.FOO) # bit not set
 
+
+    def test_item_force(self):
+        item = b'foo'
+        self.states.put(item, state=self.states.XYZZY)
+
+        contents = 'xyzzy'
+        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
+        self.assertEqual(self.states.get(item), 'xyzzy')
+
+        contents = None
+        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
+        self.assertEqual(self.states.get(item), 'xyzzy')
+        
+        contents = 'plugh'
+        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
+        self.assertEqual(self.states.get(item), 'plugh')
+        
 
 if __name__ == '__main__':
     unittest.main()

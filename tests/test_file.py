@@ -37,6 +37,18 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             self.states.put('abcd', state=self.states.FOO)
 
+        with self.assertRaises(FileExistsError):
+            self.states.put('abcd', state=self.states.FOO, force=True)
+
+        self.states.put('abcd', contents='foo',  state=self.states.FOO, force=True)
+        self.assertEqual(self.states.get('abcd'), 'foo')
+
+        with self.assertRaises(FileExistsError):
+            self.states.put('abcd', state=self.states.FOO, force=True)
+
+        self.states.put('abcd', contents='bar',  state=self.states.FOO, force=True)
+        self.assertEqual(self.states.get('abcd'), 'bar')
+
 
 if __name__ == '__main__':
     unittest.main()
