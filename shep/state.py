@@ -166,6 +166,8 @@ class State:
         self.__add_state_list(state, key)
         if contents != None:
             self.__contents[key] = contents
+
+        return state
                                 
 
     def move(self, key, to_state):
@@ -177,7 +179,7 @@ class State:
         if new_state == None:
             raise StateInvalid(to_state)
 
-        self.__move(key, current_state, to_state)
+        return self.__move(key, current_state, to_state)
 
 
     def __move(self, key, from_state, to_state):
@@ -194,6 +196,8 @@ class State:
         self.__add_state_list(to_state, key)
         current_state_list.pop(idx) 
 
+        return to_state
+
 
     def set(self, key, or_state):
         if not self.__is_pure(or_state):
@@ -208,7 +212,7 @@ class State:
         if new_state == None:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
 
-        self.__move(key, current_state, to_state)
+        return self.__move(key, current_state, to_state)
 
     
     def unset(self, key, not_state):
@@ -227,7 +231,7 @@ class State:
         if new_state == None:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
 
-        self.__move(key, current_state, to_state)
+        return self.__move(key, current_state, to_state)
 
 
     def purge(self, key):

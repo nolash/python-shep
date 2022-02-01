@@ -26,10 +26,14 @@ class SimpleFileStore:
         elif contents == None:
             contents = ''
 
-        print('wriging {}'.format(fp))
         f = open(fp, 'w')
         f.write(contents)
         f.close()
+
+
+    def remove(self, k):
+        fp = os.path.join(self.path, k)
+        os.unlink(fp)
 
 
     def get(self, k):

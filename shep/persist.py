@@ -16,27 +16,59 @@ class PersistedState(State):
 
 
     def put(self, key, contents=None, state=None, force=False):
-        k = self.name(state)
+        to_state = super(PersistedState, self).put(key, state=state, contents=contents, force=force)
+
+        k = self.name(to_state)
+
         self.__ensure_store(k)
         self.__stores[k].add(key, contents, force=force)
 
-        super(PersistedState, self).put(key, state=state, contents=contents, force=force)
 
-
-    def move(self, key, to_state):
-        k_to = self.name(to_state)
-
+    def set(self, key, or_state):
         from_state = self.state(key)
         k_from = self.name(from_state)
 
+        to_state = super(PersistedState, self).set(key, or_state)
+        k_to = self.name(to_state)
         self.__ensure_store(k_to)
-        self.__ensure_store(k_from)
 
         contents = self.__stores[k_from].get(key)
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
 
-        super(PersistedState, self).move(key, to_state)
+        return to_state
+
+
+    def unset(self, key, not_state):
+        from_state = self.state(key)
+        k_from = self.name(from_state)
+
+        to_state = super(PersistedState, self).unset(key, not_state)
+
+        k_to = self.name(to_state)
+        self.__ensure_store(k_to)
+
+        contents = self.__stores[k_from].get(key)
+        self.__stores[k_to].add(key, contents)
+        self.__stores[k_from].remove(key)
+
+        return to_state
+
+
+    def move(self, key, to_state):
+        from_state = self.state(key)
+        k_from = self.name(from_state)
+
+        to_state = super(PersistedState, self).move(key, to_state)
+
+        k_to = self.name(to_state)
+        self.__ensure_store(k_to)
+
+        contents = self.__stores[k_from].get(key)
+        self.__stores[k_to].add(key, contents)
+        self.__stores[k_from].remove(key)
+
+        return to_state
 
 
     def purge(self, key):
