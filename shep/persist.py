@@ -15,34 +15,42 @@ class PersistedState(State):
             self.__stores[k] = self.__store_factory(k)
 
 
-    def put(self, item, state=None):
+    def put(self, key, contents=None, state=None):
         k = self.name(state)
         self.__ensure_store(k)
-        self.__stores[k].add(item)
+        self.__stores[k].add(key, contents)
 
-        super(PersistedState, self).put(item, state=state)
+        super(PersistedState, self).put(key, state=state, contents=contents)
 
 
-    def move(self, item, to_state):
+    def move(self, key, to_state):
         k_to = self.name(to_state)
 
-        from_state = self.state(item)
+        from_state = self.state(key)
         k_from = self.name(from_state)
 
         self.__ensure_store(k_to)
         self.__ensure_store(k_from)
 
-        self.__stores[k_to].add(item)
-        self.__stores[k_from].remove(item)
+        contents = self.__stores[k_from].get(key)
+        self.__stores[k_to].add(key, contents)
+        self.__stores[k_from].remove(key)
 
-        super(PersistedState, self).move(item, to_state)
+        super(PersistedState, self).move(key, to_state)
 
 
-    def purge(self, item):
-        state = self.state(item)
+    def purge(self, key):
+        state = self.state(key)
         k = self.name(state)
 
         self.__ensure_store(k)
 
-        self.__stores[k].remove(item)
-        super(PersistedState, self).purge(item)
+        self.__stores[k].remove(key)
+        super(PersistedState, self).purge(key)
+
+
+    def get(self, key):
+        state = self.state(key)
+        k = self.name(state)
+
+        self.__stores[k].get(k)

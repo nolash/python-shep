@@ -1,5 +1,6 @@
 # standard imports
 import unittest
+import logging
 
 # local imports
 from shep.persist import PersistedState
@@ -10,6 +11,9 @@ from shep.error import (
         StateItemNotFound,
         )
 
+logg = logging.getLogger()
+
+
 class MockStore:
 
     def __init__(self):
@@ -17,12 +21,16 @@ class MockStore:
         self.for_state = 0
 
 
-    def add(self, k):
-        self.v[k] = True
+    def add(self, k, contents):
+        self.v[k] = contents
 
 
     def remove(self, k):
         del self.v[k]
+
+
+    def get(self, k):
+        return self.v[k]
 
 
 class TestStateItems(unittest.TestCase):
@@ -44,7 +52,7 @@ class TestStateItems(unittest.TestCase):
 
     def test_persist_new(self):
         item = b'foo'
-        self.states.put(item)
+        self.states.put(item, True)
         self.assertTrue(self.mockstore.v.get(item))
 
 
@@ -57,7 +65,7 @@ class TestStateItems(unittest.TestCase):
 
     def test_persist_move(self):
         item = b'foo'
-        self.states.put(item, self.states.FOO)
+        self.states.put(item, self.states.FOO, True)
         self.states.move(item, self.states.XYZZY) 
         self.assertEqual(self.mockstore.for_state, self.states.name(self.states.XYZZY))
         # TODO: cant check the add because remove happens after remove, need better mock
@@ -66,7 +74,7 @@ class TestStateItems(unittest.TestCase):
 
     def test_persist_purge(self):
         item = b'foo'
-        self.states.put(item, self.states.FOO)
+        self.states.put(item, self.states.FOO, True)
         self.states.purge(item)
         self.assertEqual(self.mockstore.for_state, self.states.name(self.states.FOO))
         self.assertIsNone(self.mockstore.v.get(item))

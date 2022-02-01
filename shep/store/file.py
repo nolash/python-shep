@@ -9,7 +9,9 @@ class SimpleFileStore:
         os.makedirs(self.path, exist_ok=True)
 
 
-    def add(self, v, contents=''):
+    def add(self, v, contents):
+        if contents == None:
+            contents = ''
         fp = os.path.join(self.path, v)
         try:
             os.stat(fp)

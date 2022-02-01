@@ -204,3 +204,7 @@ class State:
         if state == None:
             raise StateItemNotFound(key)
         return state
+
+
+    def get(self, key):
+        return self.__contents[key]

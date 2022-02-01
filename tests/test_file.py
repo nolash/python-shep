@@ -24,19 +24,19 @@ class TestStateReport(unittest.TestCase):
 
 
     def test_add(self):
-        self.states.put('abcd', self.states.FOO)
+        self.states.put('abcd', state=self.states.FOO, contents='baz')
         fp = os.path.join(self.d, 'FOO', 'abcd')
         f = open(fp, 'r')
         v = f.read()
         f.close()
-        self.assertEqual(len(v), 0)
+        self.assertEqual(v, 'baz')
 
 
     def test_dup(self):
-        self.states.put('abcd', self.states.FOO)
+        self.states.put('abcd', state=self.states.FOO)
         with self.assertRaises(FileExistsError):
-            self.states.put('abcd', self.states.FOO)
-       
+            self.states.put('abcd', state=self.states.FOO)
+
 
 if __name__ == '__main__':
     unittest.main()
