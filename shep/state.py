@@ -172,7 +172,11 @@ class State:
         if new_state == None:
             raise StateInvalid(to_state)
 
-        current_state_list = self.__keys.get(current_state)
+        self.__move(key, current_state, to_state)
+
+
+    def __move(self, key, from_state, to_state):
+        current_state_list = self.__keys.get(from_state)
         if current_state_list == None:
             raise StateCorruptionError(current_state)
 
@@ -186,12 +190,46 @@ class State:
         current_state_list.pop(idx) 
 
 
+    def set(self, key, or_state):
+        if not self.__is_pure(or_state):
+            raise ValueError('can only apply using single bit states')
+
+        current_state = self.__keys_reverse.get(key)
+        if current_state == None:
+            raise StateItemNotFound(key)
+
+        to_state = current_state | or_state
+        new_state = self.__reverse.get(to_state)
+        if new_state == None:
+            raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
+
+        self.__move(key, current_state, to_state)
+
+    
+    def unset(self, key, not_state):
+        if not self.__is_pure(not_state):
+            raise ValueError('can only apply using single bit states')
+
+        current_state = self.__keys_reverse.get(key)
+        if current_state == None:
+            raise StateItemNotFound(key)
+
+        to_state = current_state & (~not_state)
+        if to_state == current_state:
+            raise ValueError('invalid change for state {}: {}'.format(key, not_state))
+
+        new_state = self.__reverse.get(to_state)
+        if new_state == None:
+            raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
+
+        self.__move(key, current_state, to_state)
+
+
     def purge(self, key):
         current_state = self.__keys_reverse.get(key)
         if current_state == None:
             raise StateItemNotFound(key)
         del self.__keys_reverse[key]
-
         current_state_list = self.__keys.get(current_state)
         
         idx = self.__state_list_index(key, current_state_list)

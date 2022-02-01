@@ -82,5 +82,39 @@ class TestStateItems(unittest.TestCase):
         self.assertEqual(v, 'bar')
 
 
+    def test_item_set(self):
+        item = b'foo'
+        self.states.put(item, self.states.FOO)
+        self.states.set(item, self.states.BAR)
+        self.assertEqual(self.states.state(item), self.states.PLUGH)
+
+
+    def test_item_set_invalid(self):
+        item = b'foo'
+        self.states.put(item, self.states.FOO)
+        with self.assertRaises(StateInvalid):
+            self.states.set(item, self.states.BAZ)
+
+        item = b'bar'
+        self.states.put(item, self.states.BAR)
+        with self.assertRaises(ValueError):
+            self.states.set(item, self.states.XYZZY)
+
+
+    def test_item_set_invalid(self):
+        item = b'foo'
+        self.states.put(item, self.states.XYZZY)
+        self.states.unset(item, self.states.BAZ)
+        self.assertEqual(self.states.state(item), self.states.BAR)
+
+        item = b'bar'
+        self.states.put(item, self.states.XYZZY)
+        with self.assertRaises(ValueError):
+            self.states.unset(item, self.states.PLUGH)
+
+        with self.assertRaises(ValueError):
+            self.states.unset(item, self.states.FOO) # bit not set
+
+
 if __name__ == '__main__':
     unittest.main()

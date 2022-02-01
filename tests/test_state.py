@@ -74,6 +74,7 @@ class TestState(unittest.TestCase):
         states.add('bar')
         with self.assertRaises(StateInvalid):
             states.alias('baz', 5)
+    
 
 
 if __name__ == '__main__':
