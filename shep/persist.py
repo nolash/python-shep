@@ -79,8 +79,7 @@ class PersistedState(State):
         state = self.state(key)
         k = self.name(state)
 
-        self.__ensure_store(k)
-
+#        self.__ensure_store(k)
         self.__stores[k].remove(key)
         super(PersistedState, self).purge(key)
 
@@ -89,6 +88,7 @@ class PersistedState(State):
         k = self.name(state)
 
         for o in self.__stores[k].list():
+            self.__ensure_store(k)
             try:
                 super(PersistedState, self).put(o[0], state=state, contents=o[1])
             except StateItemExists:
@@ -97,6 +97,8 @@ class PersistedState(State):
 
     def path(self, state, key=None):
         k = self.name(state)
+
+        self.__ensure_store(k)
 
         return self.__stores[k].path(key=key)
 
