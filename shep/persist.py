@@ -90,3 +90,9 @@ class PersistedState(State):
                 super(PersistedState, self).put(o[0], state=state, contents=o[1])
             except StateItemExists:
                 pass
+
+
+    def path(self, state, key=None):
+        k = self.name(state)
+
+        return self.__stores[k].path(key=key)

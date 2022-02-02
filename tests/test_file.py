@@ -135,6 +135,16 @@ class TestStateReport(unittest.TestCase):
         self.states.sync(self.states.FOO)
         self.assertEqual(self.states.get('yyy'), None)
         self.assertEqual(self.states.get('zzzz'), 'xyzzy')
+
+
+    def test_path(self):
+        self.states.put('yyy', state=self.states.FOO)
+
+        d = os.path.join(self.d, 'FOO')
+        self.assertEqual(self.states.path(self.states.FOO), d)
+        
+        d = os.path.join(self.d, 'FOO', 'BAR')
+        self.assertEqual(self.states.path(self.states.FOO, key='BAR'), d)
         
 
 if __name__ == '__main__':

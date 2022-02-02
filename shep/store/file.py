@@ -5,12 +5,12 @@ import os
 class SimpleFileStore:
 
     def __init__(self, path):
-        self.path = path
-        os.makedirs(self.path, exist_ok=True)
+        self.__path = path
+        os.makedirs(self.__path, exist_ok=True)
 
 
     def add(self, k, contents=None, force=False):
-        fp = os.path.join(self.path, k)
+        fp = os.path.join(self.__path, k)
         have_file = False
         try:
             os.stat(fp)
@@ -32,12 +32,12 @@ class SimpleFileStore:
 
 
     def remove(self, k):
-        fp = os.path.join(self.path, k)
+        fp = os.path.join(self.__path, k)
         os.unlink(fp)
 
 
     def get(self, k):
-        fp = os.path.join(self.path, k)
+        fp = os.path.join(self.__path, k)
         f = open(fp, 'r')
         r = f.read()
         f.close()
@@ -46,8 +46,8 @@ class SimpleFileStore:
 
     def list(self):
         files = []
-        for p in os.listdir(self.path):
-            fp = os.path.join(self.path, p)
+        for p in os.listdir(self.__path):
+            fp = os.path.join(self.__path, p)
             f = open(fp, 'r')
             r = f.read()
             f.close()
@@ -57,13 +57,19 @@ class SimpleFileStore:
         return files
 
 
+    def path(self, key=None):
+        if key == None:
+            return self.__path
+        return os.path.join(self.__path, key)
+
+
 class SimpleFileStoreFactory:
 
     def __init__(self, path):
-        self.path = path
+        self.__path = path
 
 
     def add(self, k):
         k = str(k)
-        store_path = os.path.join(self.path, k)
+        store_path = os.path.join(self.__path, k)
         return SimpleFileStore(store_path)
