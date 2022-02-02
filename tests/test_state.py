@@ -76,6 +76,22 @@ class TestState(unittest.TestCase):
             states.alias('baz', 5)
     
 
+    def test_peek(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+
+        states.put('abcd')
+        self.assertEqual(states.peek('abcd'), states.FOO)
+
+        states.move('abcd', states.FOO)
+        self.assertEqual(states.peek('abcd'), states.BAR)
+
+        states.move('abcd', states.BAR)
+
+        with self.assertRaises(StateInvalid):
+            self.assertEqual(states.peek('abcd'))
+
 
 if __name__ == '__main__':
     unittest.main()

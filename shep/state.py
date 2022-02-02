@@ -22,6 +22,8 @@ class State:
 
 
     def __is_pure(self, v):
+        if v == 0:
+            return True
         c = 1
         for i in range(self.__bits):
             if c & v > 0:
@@ -33,6 +35,7 @@ class State:
     def __check_name_valid(self, k):
         if not k.isalpha():
             raise ValueError('only alpha')
+
 
     def __check_name(self, k):
         self.__check_name_valid(k) 
@@ -53,10 +56,13 @@ class State:
         return v
 
 
-    def __check_value(self, v):
-        v = self.__check_valid(v)
+    def __check_limit(self, v):
         if v > self.__limit:
             raise OverflowError(v)
+
+    def __check_value(self, v):
+        v = self.__check_valid(v)
+        self.__check_limit(v) 
         return v
 
 
@@ -261,3 +267,20 @@ class State:
         if self.__reverse.get(state) == None:
             raise StateInvalid(state)
         return self.__keys[state]
+
+
+    def peek(self, key):
+        state = self.__keys_reverse.get(key)
+        if state == None:
+            raise StateItemNotFound(key)
+        if not self.__is_pure(state):
+            raise StateInvalid('cannot run next on an alias state')
+       
+        if state == 0:
+            state = 1
+        else:
+            state <<= 1
+        if state > self.__c:
+            raise StateInvalid('unknown state {}'.format(state))
+
+        return state
