@@ -23,7 +23,7 @@ class SimpleFileStore:
                 raise FileExistsError(fp)
             if contents == None:
                 raise FileExistsError('will not overwrite empty content on existing file {}. Use rm then add instead'.format(fp))
-        elif contents == None:
+        if contents == None:
             contents = ''
 
         f = open(fp, 'w')

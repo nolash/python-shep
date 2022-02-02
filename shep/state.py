@@ -132,8 +132,8 @@ class State:
 
 
     def name(self, v):
-        if v == None:
-            return self.NEW
+        if v == None or v == 0:
+            return 'NEW'
         k = self.__reverse.get(v)
         if k == None:
             raise StateInvalid(v)
@@ -269,6 +269,14 @@ class State:
         return self.__keys[state]
 
 
+    def sync(self, state):
+        pass
+
+
+    def path(self, state, key=None):
+        return None
+
+
     def peek(self, key):
         state = self.__keys_reverse.get(key)
         if state == None:
@@ -284,3 +292,9 @@ class State:
             raise StateInvalid('unknown state {}'.format(state))
 
         return state
+
+
+    def next(self, key):
+        from_state = self.state(key)
+        new_state = self.peek(key)
+        return self.__move(key, from_state, new_state)

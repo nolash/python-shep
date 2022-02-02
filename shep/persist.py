@@ -58,11 +58,14 @@ class PersistedState(State):
 
     def move(self, key, to_state):
         from_state = self.state(key)
-        k_from = self.name(from_state)
-
         to_state = super(PersistedState, self).move(key, to_state)
+        return self.__movestore(key, from_state, to_state)
 
+
+    def __movestore(self, key, from_state, to_state):
+        k_from = self.name(from_state)
         k_to = self.name(to_state)
+
         self.__ensure_store(k_to)
 
         contents = self.__stores[k_from].get(key)
@@ -96,3 +99,9 @@ class PersistedState(State):
         k = self.name(state)
 
         return self.__stores[k].path(key=key)
+
+
+    def next(self, key=None):
+        from_state = self.state(key)
+        to_state = super(PersistedState, self).next(key)
+        return self.__movestore(key, from_state, to_state)

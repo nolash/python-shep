@@ -145,7 +145,27 @@ class TestStateReport(unittest.TestCase):
         
         d = os.path.join(self.d, 'FOO', 'BAR')
         self.assertEqual(self.states.path(self.states.FOO, key='BAR'), d)
+
+
+    def test_next(self):
+        self.states.put('abcd')
+
+        self.states.next('abcd')
+        self.assertEqual(self.states.state('abcd'), self.states.FOO)
         
+        self.states.next('abcd')
+        self.assertEqual(self.states.state('abcd'), self.states.BAR)
+
+        with self.assertRaises(StateInvalid):
+            self.states.next('abcd')
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        fp = os.path.join(self.d, 'BAR', 'abcd')
+        os.stat(fp)
+
 
 if __name__ == '__main__':
     unittest.main()
