@@ -87,6 +87,8 @@ class PersistedState(State):
     def sync(self, state):
         k = self.name(state)
 
+        self.__ensure_store(k)
+
         for o in self.__stores[k].list():
             self.__ensure_store(k)
             try:

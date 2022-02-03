@@ -35,12 +35,12 @@ class State:
     def __check_name_valid(self, k):
         if not k.isalpha():
             raise ValueError('only alpha')
+        return k.upper()
 
 
     def __check_name(self, k):
-        self.__check_name_valid(k) 
-
-        k = k.upper()
+        k = self.__check_name_valid(k) 
+            
         try:
             getattr(self, k)
             raise StateExists(k)
@@ -138,6 +138,11 @@ class State:
         if k == None:
             raise StateInvalid(v)
         return k
+
+
+    def from_name(self, k):
+        k = self.__check_name_valid(k)
+        return getattr(self, k)
 
 
     def match(self, v, pure=False):

@@ -93,5 +93,11 @@ class TestState(unittest.TestCase):
             self.assertEqual(states.peek('abcd'))
 
 
+    def test_from_name(self):
+        states = State(3)
+        states.add('foo')
+        self.assertEqual(states.from_name('foo'), states.FOO)
+
+
 if __name__ == '__main__':
     unittest.main()
