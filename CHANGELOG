@@ -1,3 +1,8 @@
+- 0.0.18
+	* Eliminate key error when list run on empty valid state
+	* Add replace content method
+	* Remove force option from put
+	* Remove purge
 - 0.0.17
 	* Add reverse lookup method for name to state property
 - 0.0.16

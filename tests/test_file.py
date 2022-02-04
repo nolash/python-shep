@@ -38,17 +38,8 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(StateItemExists):
             self.states.put('abcd', state=self.states.FOO)
 
-        with self.assertRaises(FileExistsError):
-            self.states.put('abcd', state=self.states.FOO, force=True)
-
-        self.states.put('abcd', contents='foo',  state=self.states.FOO, force=True)
-        self.assertEqual(self.states.get('abcd'), 'foo')
-
-        with self.assertRaises(FileExistsError):
-            self.states.put('abcd', state=self.states.FOO, force=True)
-
-        self.states.put('abcd', contents='bar',  state=self.states.FOO, force=True)
-        self.assertEqual(self.states.get('abcd'), 'bar')
+        with self.assertRaises(StateItemExists): #FileExistsError):
+            self.states.put('abcd', state=self.states.FOO)
 
 
     def test_list(self):
@@ -165,6 +156,18 @@ class TestStateReport(unittest.TestCase):
 
         fp = os.path.join(self.d, 'BAR', 'abcd')
         os.stat(fp)
+
+
+    def test_replace(self):
+        self.states.put('abcd')
+        self.states.replace('abcd', 'foo')
+        self.assertEqual(self.states.get('abcd'), 'foo')
+
+        fp = os.path.join(self.d, 'NEW', 'abcd')
+        f = open(fp, 'r')
+        r = f.read()
+        f.close()
+        self.assertEqual(r, 'foo')
 
 
 if __name__ == '__main__':

@@ -16,13 +16,13 @@ class PersistedState(State):
             self.__stores[k] = self.__store_factory(k)
 
 
-    def put(self, key, contents=None, state=None, force=False):
-        to_state = super(PersistedState, self).put(key, state=state, contents=contents, force=force)
+    def put(self, key, contents=None, state=None):
+        to_state = super(PersistedState, self).put(key, state=state, contents=contents)
 
         k = self.name(to_state)
 
         self.__ensure_store(k)
-        self.__stores[k].add(key, contents, force=force)
+        self.__stores[k].add(key, contents)
 
 
     def set(self, key, or_state):
@@ -75,15 +75,6 @@ class PersistedState(State):
         return to_state
 
 
-    def purge(self, key):
-        state = self.state(key)
-        k = self.name(state)
-
-#        self.__ensure_store(k)
-        self.__stores[k].remove(key)
-        super(PersistedState, self).purge(key)
-
-
     def sync(self, state):
         k = self.name(state)
 
@@ -97,11 +88,16 @@ class PersistedState(State):
                 pass
 
 
+    def list(self, state):
+        k = self.name(state)
+        self.__ensure_store(k)
+        #return self.__stores[k].list(state)
+        return super(PersistedState, self).list(state)
+
+
     def path(self, state, key=None):
         k = self.name(state)
-
         self.__ensure_store(k)
-
         return self.__stores[k].path(key=key)
 
 
@@ -109,3 +105,10 @@ class PersistedState(State):
         from_state = self.state(key)
         to_state = super(PersistedState, self).next(key)
         return self.__movestore(key, from_state, to_state)
+
+
+    def replace(self, key, contents):
+        super(PersistedState, self).replace(key, contents)
+        state = self.state(key)
+        k = self.name(state)
+        return self.__stores[k].replace(key, contents)

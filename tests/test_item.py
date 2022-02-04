@@ -65,15 +65,6 @@ class TestStateItems(unittest.TestCase):
         self.assertEqual(self.states.state(item), self.states.XYZZY)
 
 
-    def test_item_purge(self):
-        item = b'foo'
-        self.states.put(item, state=self.states.BAZ)
-        self.assertEqual(self.states.state(item), self.states.BAZ)
-        self.states.purge(item)
-        with self.assertRaises(StateItemNotFound):
-            self.states.state(item)
-
-
     def test_item_get(self):
         item = b'foo'
         self.states.put(item, state=self.states.BAZ, contents='bar')
@@ -115,23 +106,6 @@ class TestStateItems(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.states.unset(item, self.states.FOO) # bit not set
 
-
-    def test_item_force(self):
-        item = b'foo'
-        self.states.put(item, state=self.states.XYZZY)
-
-        contents = 'xyzzy'
-        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
-        self.assertEqual(self.states.get(item), 'xyzzy')
-
-        contents = None
-        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
-        self.assertEqual(self.states.get(item), 'xyzzy')
-        
-        contents = 'plugh'
-        self.states.put(item, state=self.states.XYZZY, contents=contents, force=True)
-        self.assertEqual(self.states.get(item), 'plugh')
-        
 
 if __name__ == '__main__':
     unittest.main()

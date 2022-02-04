@@ -21,7 +21,7 @@ class MockStore:
         self.for_state = 0
 
 
-    def add(self, k, contents=None, force=False):
+    def add(self, k, contents=None):
         self.v[k] = contents
 
 
@@ -70,14 +70,6 @@ class TestStateItems(unittest.TestCase):
         self.assertEqual(self.mockstore.for_state, self.states.name(self.states.XYZZY))
         # TODO: cant check the add because remove happens after remove, need better mock
         self.assertIsNone(self.mockstore.v.get(item)) 
-
-
-    def test_persist_purge(self):
-        item = b'foo'
-        self.states.put(item, self.states.FOO, True)
-        self.states.purge(item)
-        self.assertEqual(self.mockstore.for_state, self.states.name(self.states.FOO))
-        self.assertIsNone(self.mockstore.v.get(item))
 
 
     def test_persist_move_new(self):

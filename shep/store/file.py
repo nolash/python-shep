@@ -9,20 +9,8 @@ class SimpleFileStore:
         os.makedirs(self.__path, exist_ok=True)
 
 
-    def add(self, k, contents=None, force=False):
+    def add(self, k, contents=None):
         fp = os.path.join(self.__path, k)
-        have_file = False
-        try:
-            os.stat(fp)
-            have_file = True
-        except FileNotFoundError:
-            pass
-
-        if have_file:
-            if not force:
-                raise FileExistsError(fp)
-            if contents == None:
-                raise FileExistsError('will not overwrite empty content on existing file {}. Use rm then add instead'.format(fp))
         if contents == None:
             contents = ''
 
@@ -61,6 +49,14 @@ class SimpleFileStore:
         if key == None:
             return self.__path
         return os.path.join(self.__path, key)
+
+
+    def replace(self, key, contents):
+        fp = os.path.join(self.__path, key)
+        os.stat(fp)
+        f = open(fp, 'w')
+        r = f.write(contents)
+        f.close()
 
 
 class SimpleFileStoreFactory:

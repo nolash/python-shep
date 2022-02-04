@@ -60,6 +60,7 @@ class State:
         if v > self.__limit:
             raise OverflowError(v)
 
+
     def __check_value(self, v):
         v = self.__check_valid(v)
         self.__check_limit(v) 
@@ -210,7 +211,7 @@ class State:
         return to_state
 
 
-    def set(self, key, or_state):
+    def set(self, key, or_state, content=None):
         if not self.__is_pure(or_state):
             raise ValueError('can only apply using single bit states')
 
@@ -245,18 +246,6 @@ class State:
         return self.__move(key, current_state, to_state)
 
 
-    def purge(self, key):
-        current_state = self.__keys_reverse.get(key)
-        if current_state == None:
-            raise StateItemNotFound(key)
-        del self.__keys_reverse[key]
-        current_state_list = self.__keys.get(current_state)
-        
-        idx = self.__state_list_index(key, current_state_list)
-
-        current_state_list.pop(idx) 
-
-
     def state(self, key):
         state = self.__keys_reverse.get(key)
         if state == None:
@@ -269,9 +258,10 @@ class State:
 
 
     def list(self, state):
-        if self.__reverse.get(state) == None:
-            raise StateInvalid(state)
-        return self.__keys[state]
+        try:
+            return self.__keys[state]
+        except KeyError:
+            return []
 
 
     def sync(self, state):
@@ -303,3 +293,8 @@ class State:
         from_state = self.state(key)
         new_state = self.peek(key)
         return self.__move(key, from_state, new_state)
+
+
+    def replace(self, key, contents):
+        self.state(key)
+        self.__contents[key] = contents
