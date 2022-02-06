@@ -8,7 +8,17 @@ from shep.error import (
 
 
 class State:
+    """State is an in-memory bitmasked state store for key-value pairs, or even just keys alone.
 
+    A State is comprised of a number of atomic state bits, and zero or more aliases that represent unique combinations of these bits.
+
+    The State object will enforce that duplicate states cannot exist. It will also enforce that all alias states are composed of valid atomic states.
+
+    :param bits: Number of atomic states that this State object will represent (i.e. number of bits).
+    :type bits: int
+    :param logger: Standard library logging instance to output to
+    :type logger: logging.Logger
+    """
     def __init__(self, bits, logger=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
@@ -21,6 +31,7 @@ class State:
         self.__contents = {}
 
 
+    # return true if v is a single-bit state
     def __is_pure(self, v):
         if v == 0:
             return True
@@ -32,12 +43,14 @@ class State:
         return c == v
 
 
+    # validates a state name and return its canonical representation
     def __check_name_valid(self, k):
         if not k.isalpha():
             raise ValueError('only alpha')
         return k.upper()
 
 
+    # enforces name validity, aswell as name uniqueness
     def __check_name(self, k):
         k = self.__check_name_valid(k) 
             
@@ -49,6 +62,7 @@ class State:
         return k
 
 
+    # enforces state value validity and uniqueness
     def __check_valid(self, v):
         v = self.__check_value_typ(v)
         if self.__reverse.get(v):
@@ -56,22 +70,26 @@ class State:
         return v
 
 
+    # enforces state value within bit limit of instantiation
     def __check_limit(self, v):
         if v > self.__limit:
             raise OverflowError(v)
         return v
 
 
+    # enforces state value validity, uniqueness and value limit 
     def __check_value(self, v):
         v = self.__check_valid(v)
         self.__check_limit(v) 
         return v
 
 
+    # enforces state value validity
     def __check_value_typ(self, v):
         return int(v)
 
 
+    # enforces state value validity within the currently registered states (number of add calls vs number of bits in instantiation).
     def __check_value_cursor(self, v):
         v = self.__check_value_typ(v)
         if v > 1 << self.__c:
@@ -79,17 +97,20 @@ class State:
         return v
 
 
+    # set a bit for state of the given key
     def __set(self, k, v):
         setattr(self, k, v)
         self.__reverse[v] = k
         self.__c += 1
 
 
+    # check validity of key to register state for
     def __check_key(self, item):
         if self.__keys_reverse.get(item) != None:
             raise StateItemExists(item)
 
 
+    # adds a new key to the state store
     def __add_state_list(self, state, item):
         if self.__keys.get(state) == None:
             self.__keys[state] = []
@@ -97,6 +118,9 @@ class State:
         self.__keys_reverse[item] = state
 
 
+    # Get index of a key for a given state.
+    # A key should only ever exist in one state.
+    # A failed lookup should indicate a mistake on the caller part, (it may also indicate corruption, but probanbly impossible to tell the difference)
     def __state_list_index(self, item, state_list):
         idx = -1
         try:
@@ -110,6 +134,11 @@ class State:
         return idx
 
 
+    # Add a state to the store.
+    #
+    # :param k: State name
+    # :type k: str
+    # :raises shep.error.StateExists: State name is already registered
     def add(self, k):
         v = 1 << self.__c
         k = self.__check_name(k)
@@ -117,6 +146,16 @@ class State:
         self.__set(k, v)
         
 
+    # Add an alias for a combination of states in the store.
+    #
+    # State aggregates may be provided as comma separated values or as a single (or'd) integer value. 
+    #|
+    # :param k: Alias name
+    # :type k: str
+    # :param *args: One or more states to aggregate for this alias.
+    # :type *args: int or list of ints
+    # :raises StateInvalid: Attempt to create alias for one or more atomic states that do not exist.
+    # :raises ValueError: Attempt to use bit value as alias
     def alias(self, k, *args):
         k = self.__check_name(k)
         v = 0
@@ -128,6 +167,10 @@ class State:
         self.__set(k, v)
 
 
+    # Return list of all unique atomic and alias states.
+    #
+    # :rtype: list of ints
+    # :return: states
     def all(self):
         l = []
         for k in dir(self):
@@ -140,6 +183,13 @@ class State:
         return l
 
 
+    # Retrieve that string representation of the state attribute represented by the given state integer value.
+    # 
+    # :param v: State integer
+    # :type v: int
+    # :raises StateInvalid: State corresponding to given integer not found
+    # :rtype: str
+    # :return: State name
     def name(self, v):
         if v == None or v == 0:
             return 'NEW'
@@ -149,11 +199,30 @@ class State:
         return k
 
 
+    # Retrieve the real state integer value corresponding to an attribute name.
+    #
+    # :param k: Attribute name
+    # :type k: str
+    # :raises ValueError: Invalid attribute name
+    # :raises AttributeError: Attribute not found
+    # :rtype: int
+    # :return: Numeric state value
     def from_name(self, k):
         k = self.__check_name_valid(k)
         return getattr(self, k)
 
 
+    # Match against all stored states.
+    #
+    # If pure is set, only match against the single atomic state will be returned.
+    #
+    # :param v: Integer state to match
+    # :type v: int
+    # :param pure: Match only pure states
+    # :type pure: bool
+    # :raises KeyError: Unknown state
+    # :rtype: tuple
+    # :return: 0: Alias that input resolves to, 1: list of atomic states that matches the state
     def match(self, v, pure=False):
         alias = None
         if not pure:
@@ -172,8 +241,24 @@ class State:
 
         return (alias, r,)
 
-    
-    def put(self, key, state=None, contents=None, force=False):
+   
+    # Add a key to an existing state.
+    #
+    # If no state it specified, the default state attribute "NEW" will be used.
+    # 
+    # Contents may be supplied as value to pair with the given key. Contents may be changed later by calling the `replace` method.
+    #
+    # :param key: Content key to add
+    # :type key: str
+    # :param state: Initial state for the put. If not given, initial state will be NEW
+    # :type state: int
+    # :param contents: Contents to associate with key. A valie of None should be recognized as an undefined value as opposed to a zero-length value throughout any backend
+    # :type contents: str
+    # :raises StateItemExists: Content key has already been added
+    # :raises StateInvalid: Given state has not been registered
+    # :rtype: integer
+    # :return: Resulting state that key is put under (should match the input state)
+    def put(self, key, state=None, contents=None):
         if state == None:
             state = self.NEW
         elif self.__reverse.get(state) == None:
@@ -190,6 +275,16 @@ class State:
         return state
                                 
 
+    # Move a given content key from one state to another.
+    #
+    # :param key: Key to move
+    # :type key: str
+    # :param to_state: Numeric state to move to (may be atomic or alias)
+    # :type to_state: integer
+    # :raises StateItemNotFound: Given key has not been registered
+    # :raises StateInvalid: Given state has not been registered
+    # :rtype: integer
+    # :return: Resulting state from move (should match the state given as input)
     def move(self, key, to_state):
         current_state = self.__keys_reverse.get(key)
         if current_state == None:
@@ -202,6 +297,7 @@ class State:
         return self.__move(key, current_state, to_state)
 
 
+    # implementation for state move that ensures integrity of keys and states.
     def __move(self, key, from_state, to_state):
         current_state_list = self.__keys.get(from_state)
         if current_state_list == None:
@@ -217,9 +313,20 @@ class State:
         current_state_list.pop(idx) 
 
         return to_state
+   
 
-
-    def set(self, key, or_state, content=None):
+    # Set a partial state bit. May result in an alias state being triggered.
+    #
+    # :param key: Content key to modify state for
+    # :type key: str
+    # :param or_state: Atomic stat to add
+    # :type or_state: int
+    # :raises ValueError: State is not a single bit state
+    # :raises StateItemNotFound: Content key is not registered
+    # :raises StateInvalid: Resulting state after addition of atomic state is unknown
+    # :rtype: int
+    # :returns: Resulting state
+    def set(self, key, or_state):
         if not self.__is_pure(or_state):
             raise ValueError('can only apply using single bit states')
 
