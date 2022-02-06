@@ -50,7 +50,7 @@ class State:
 
 
     def __check_valid(self, v):
-        v = int(v)
+        v = self.__check_value_typ(v)
         if self.__reverse.get(v):
             raise StateExists(v)
         return v
@@ -59,6 +59,7 @@ class State:
     def __check_limit(self, v):
         if v > self.__limit:
             raise OverflowError(v)
+        return v
 
 
     def __check_value(self, v):
@@ -67,8 +68,12 @@ class State:
         return v
 
 
+    def __check_value_typ(self, v):
+        return int(v)
+
+
     def __check_value_cursor(self, v):
-        v = self.__check_valid(v)
+        v = self.__check_value_typ(v)
         if v > 1 << self.__c:
             raise StateInvalid(v)
         return v
@@ -112,9 +117,12 @@ class State:
         self.__set(k, v)
         
 
-    def alias(self, k, v):
+    def alias(self, k, *args):
         k = self.__check_name(k)
-        v = self.__check_value_cursor(v)
+        v = 0
+        for a in args:
+            a = self.__check_value_cursor(a)
+            v = self.__check_limit(v | a)
         if self.__is_pure(v):
             raise ValueError('use add to add pure values')
         self.__set(k, v)

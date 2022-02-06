@@ -66,6 +66,14 @@ class TestState(unittest.TestCase):
         states = State(3)
         with self.assertRaises(ValueError):
             states.alias('foo', 1)
+        states.add('foo')
+        states.add('bar')
+        states.alias('baz', states.FOO, states.BAR)
+        self.assertEqual(states.BAZ, 3)
+
+
+    def test_alias_multi(self):
+        states = State(3)
 
 
     def test_alias_cover(self):
