@@ -263,11 +263,7 @@ class State:
             state = self.NEW
         elif self.__reverse.get(state) == None:
             raise StateInvalid(state)
-        try:
-            self.__check_key(key)
-        except StateItemExists as e:
-            if not force:
-                raise(e)
+        self.__check_key(key)
         self.__add_state_list(state, key)
         if contents != None:
             self.__contents[key] = contents
@@ -315,7 +311,7 @@ class State:
         return to_state
    
 
-    # Set a partial state bit. May result in an alias state being triggered.
+    # Move to an alias state by setting a single bit.
     #
     # :param key: Content key to modify state for
     # :type key: str
@@ -342,6 +338,19 @@ class State:
         return self.__move(key, current_state, to_state)
 
     
+    # Unset a single bit, moving to a pure or alias state.
+    #
+    # The resulting state cannot be NEW (0).
+    # 
+    # :param key: Content key to modify state for
+    # :type key: str
+    # :param or_state: Atomic stat to add
+    # :type or_state: int
+    # :raises ValueError: State is not a single bit state, or attempts to revert to NEW
+    # :raises StateItemNotFound: Content key is not registered
+    # :raises StateInvalid: Resulting state after addition of atomic state is unknown
+    # :rtype: int
+    # :returns: Resulting state
     def unset(self, key, not_state):
         if not self.__is_pure(not_state):
             raise ValueError('can only apply using single bit states')
@@ -354,6 +363,9 @@ class State:
         if to_state == current_state:
             raise ValueError('invalid change for state {}: {}'.format(key, not_state))
 
+        if to_state == self.NEW:
+            raise ValueError('State {} for {} cannot be reverted to NEW'.format(current_state, key))
+
         new_state = self.__reverse.get(to_state)
         if new_state == None:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
@@ -361,6 +373,13 @@ class State:
         return self.__move(key, current_state, to_state)
 
 
+    # Return the current numeric state for the given content key.
+    #
+    # :param key: Key to return content for
+    # :type key: str
+    # :raises StateItemNotFound: Content key is unknown
+    # :rtype: int
+    # :returns: State
     def state(self, key):
         state = self.__keys_reverse.get(key)
         if state == None:
@@ -368,10 +387,22 @@ class State:
         return state
 
 
-    def get(self, key=None):
+    # Retrieve the content for a content key.
+    # 
+    # :param key: Content key to retrieve content for
+    # :type key: str
+    # :rtype: any
+    # :returns: Content
+    def get(self, key):
         return self.__contents.get(key)
 
 
+    # List all content keys matching a state.
+    #
+    # :param state: State to match 
+    # :type state: int
+    # :rtype: list of str
+    # :returns: Matching content keys
     def list(self, state):
         try:
             return self.__keys[state]
@@ -379,6 +410,11 @@ class State:
             return []
 
 
+    # Noop method for interface implementation providing sync to backend.
+    #
+    # :param state: State to sync.
+    # :type state:
+    # :todo: (for higher level implementer) if sync state is none, sync all
     def sync(self, state):
         pass
 
