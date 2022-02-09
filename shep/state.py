@@ -19,16 +19,25 @@ class State:
     :param logger: Standard library logging instance to output to
     :type logger: logging.Logger
     """
+
+    base_state_name = 'NEW'
+
     def __init__(self, bits, logger=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
-        self.NEW = 0
+        setattr(self, self.base_state_name, 0)
+        #self.NEW = 0
 
-        self.__reverse = {0: self.NEW}
-        self.__keys = {self.NEW: []}
+        self.__reverse = {0: getattr(self, self.base_state_name)}
+        self.__keys = {getattr(self, self.base_state_name): []}
         self.__keys_reverse = {}
         self.__contents = {}
+
+
+    @classmethod
+    def set_default_state(cls, state_name):
+        cls.base_state_name = state_name.upper()
 
 
     # return true if v is a single-bit state
@@ -197,7 +206,7 @@ class State:
         :return: State name
         """
         if v == None or v == 0:
-            return 'NEW'
+            return self.base_state_name
         k = self.__reverse.get(v)
         if k == None:
             raise StateInvalid(v)
@@ -252,13 +261,13 @@ class State:
     def put(self, key, state=None, contents=None):
         """Add a key to an existing state.
         
-        If no state it specified, the default state attribute "NEW" will be used.
+        If no state it specified, the default state attribute State.base_state_name will be used.
         
         Contents may be supplied as value to pair with the given key. Contents may be changed later by calling the `replace` method.
         
         :param key: Content key to add
         :type key: str
-        :param state: Initial state for the put. If not given, initial state will be NEW
+        :param state: Initial state for the put. If not given, initial state will be State.base_state_name
         :type state: int
         :param contents: Contents to associate with key. A valie of None should be recognized as an undefined value as opposed to a zero-length value throughout any backend
         :type contents: str
@@ -268,7 +277,7 @@ class State:
         :return: Resulting state that key is put under (should match the input state)
         """
         if state == None:
-            state = self.NEW
+            state = getattr(self, self.base_state_name)
         elif self.__reverse.get(state) == None:
             raise StateInvalid(state)
         self.__check_key(key)
@@ -351,13 +360,13 @@ class State:
     def unset(self, key, not_state):
         """Unset a single bit, moving to a pure or alias state.
         
-        The resulting state cannot be NEW (0).
+        The resulting state cannot be State.base_state_name (0).
          
         :param key: Content key to modify state for
         :type key: str
         :param or_state: Atomic stat to add
         :type or_state: int
-        :raises ValueError: State is not a single bit state, or attempts to revert to NEW
+        :raises ValueError: State is not a single bit state, or attempts to revert to State.base_state_name
         :raises StateItemNotFound: Content key is not registered
         :raises StateInvalid: Resulting state after addition of atomic state is unknown
         :rtype: int
@@ -374,8 +383,8 @@ class State:
         if to_state == current_state:
             raise ValueError('invalid change for state {}: {}'.format(key, not_state))
 
-        if to_state == self.NEW:
-            raise ValueError('State {} for {} cannot be reverted to NEW'.format(current_state, key))
+        if to_state == getattr(self, self.base_state_name):
+            raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))
 
         new_state = self.__reverse.get(to_state)
         if new_state == None:
