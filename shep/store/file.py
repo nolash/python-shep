@@ -3,13 +3,24 @@ import os
 
 
 class SimpleFileStore:
+    """Filesystem store of contents for state, with one directory per state.
 
+    :param path: Filesystem base path for all state directory
+    :type path: str
+    """
     def __init__(self, path):
         self.__path = path
         os.makedirs(self.__path, exist_ok=True)
 
 
     def add(self, k, contents=None):
+        """Add a new key and optional contents 
+
+        :param k: Content key to add 
+        :type k: str
+        :param contents: Optional contents to assign for content key
+        :type contents: any
+        """
         fp = os.path.join(self.__path, k)
         if contents == None:
             contents = ''
@@ -20,11 +31,25 @@ class SimpleFileStore:
 
 
     def remove(self, k):
+        """Remove a content key from a state.
+
+        :param k: Content key to remove from the state
+        :type k: str
+        :raises FileNotFoundError: Content key does not exist in the state
+        """
         fp = os.path.join(self.__path, k)
         os.unlink(fp)
 
-
+    
     def get(self, k):
+        """Retrieve the content for the given content key.
+
+        :param k: Content key to retrieve content for
+        :type k: str
+        :raises FileNotFoundError: Content key does not exist for the state
+        :rtype: any
+        :return: Contents
+        """
         fp = os.path.join(self.__path, k)
         f = open(fp, 'r')
         r = f.read()
@@ -33,6 +58,11 @@ class SimpleFileStore:
 
 
     def list(self):
+        """List all content keys persisted for the state.
+
+        :rtype: list of str
+        :return: Content keys in state
+        """
         files = []
         for p in os.listdir(self.__path):
             fp = os.path.join(self.__path, p)
@@ -45,14 +75,28 @@ class SimpleFileStore:
         return files
 
 
-    def path(self, key=None):
-        if key == None:
+    def path(self, k=None):
+        """Return filesystem path for persisted state or state item.
+
+        :param k: If given, will return filesystem path to specified content key
+        :type k: str
+        :rtype: str
+        :return: File path
+        """
+        if k == None:
             return self.__path
-        return os.path.join(self.__path, key)
+        return os.path.join(self.__path, k)
 
 
-    def replace(self, key, contents):
-        fp = os.path.join(self.__path, key)
+    def replace(self, k, contents):
+        """Replace persisted content for persisted content key.
+
+        :param k: Content key to replace contents for
+        :type k: str
+        :param contents: Contents
+        :type contents: any
+        """
+        fp = os.path.join(self.__path, k)
         os.stat(fp)
         f = open(fp, 'w')
         r = f.write(contents)
@@ -60,12 +104,23 @@ class SimpleFileStore:
 
 
 class SimpleFileStoreFactory:
+    """Provide a method to instantiate SimpleFileStore instances that provide persistence for individual states.
 
+    :param path: Filesystem path as base path for states
+    :type path: str
+    """
     def __init__(self, path):
         self.__path = path
 
 
     def add(self, k):
+        """Create a new SimpleFileStore for a state.
+
+        :param k: Identifier for the state
+        :type k: str
+        :rtype: SimpleFileStore
+        :return: A filesystem persistence instance with the given identifier as subdirectory
+        """
         k = str(k)
         store_path = os.path.join(self.__path, k)
         return SimpleFileStore(store_path)

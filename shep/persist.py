@@ -150,7 +150,7 @@ class PersistedState(State):
         """
         k = self.name(state)
         self.__ensure_store(k)
-        return self.__stores[k].path(key=key)
+        return self.__stores[k].path(k=key)
 
 
     def next(self, key=None):
