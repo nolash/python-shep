@@ -4,6 +4,15 @@ from .error import StateItemExists
 
 
 class PersistedState(State):
+    """Adapter for persisting state changes and synchronising states between memory and persisted backend.
+
+    :param factory: A function capable of returning a persisted store from a single path argument.
+    :type factory: function
+    :param bits: Number of pure states. Passed to the superclass.
+    :type bits: int
+    :param logger: Logger to capture logging output, or None for no logging.
+    :type logger: object
+    """
 
     def __init__(self, factory, bits, logger=None):
         super(PersistedState, self).__init__(bits, logger=logger)
@@ -11,12 +20,17 @@ class PersistedState(State):
         self.__stores = {}
 
 
+    # Create state store container if missing.
     def __ensure_store(self, k):
         if self.__stores.get(k) == None:
             self.__stores[k] = self.__store_factory(k)
 
 
     def put(self, key, contents=None, state=None):
+        """Persist a key or key/content pair.
+
+        See shep.state.State.put
+        """
         to_state = super(PersistedState, self).put(key, state=state, contents=contents)
 
         k = self.name(to_state)
@@ -26,6 +40,10 @@ class PersistedState(State):
 
 
     def set(self, key, or_state):
+        """Persist a new state for a key or key/content.
+
+        See shep.state.State.set
+        """
         from_state = self.state(key)
         k_from = self.name(from_state)
 
@@ -41,6 +59,10 @@ class PersistedState(State):
 
 
     def unset(self, key, not_state):
+        """Persist a new state for a key or key/content.
+
+        See shep.state.State.unset
+        """
         from_state = self.state(key)
         k_from = self.name(from_state)
 
@@ -57,11 +79,16 @@ class PersistedState(State):
 
 
     def move(self, key, to_state):
+        """Persist a new state for a key or key/content.
+
+        See shep.state.State.move
+        """
         from_state = self.state(key)
         to_state = super(PersistedState, self).move(key, to_state)
         return self.__movestore(key, from_state, to_state)
 
 
+    # common procedure for safely moving a persisted resource from one state to another.
     def __movestore(self, key, from_state, to_state):
         k_from = self.name(from_state)
         k_to = self.name(to_state)
@@ -76,6 +103,13 @@ class PersistedState(State):
 
 
     def sync(self, state):
+        """Reload resources for a single state in memory from the persisted state store.
+
+        :param state: State to load
+        :type state: int
+        :raises StateItemExists: A content key is already recorded with a different state in memory than in persisted store.
+        # :todo: if sync state is none, sync all
+        """
         k = self.name(state)
 
         self.__ensure_store(k)
@@ -89,36 +123,51 @@ class PersistedState(State):
 
 
     def list(self, state):
+        """List all content keys for a particular state.
+
+        This method will return from memory, and will not sync the persisted state first.
+   
+        See shep.state.State.list
+        """
         k = self.name(state)
         self.__ensure_store(k)
         #return self.__stores[k].list(state)
         return super(PersistedState, self).list(state)
 
 
-    # Return a file path or URL pointing to the persisted state.
-    #
-    # If the key is omitted, the URL to the state item's container must be returned, and None if no such container exists.
-    # 
-    # :param state: State to locate
-    # :type state: int
-    # :param key: Content key to locate
-    # :type key: str
-    # :rtype: str
-    # :returns: Locator pointng to persisted state
-    # :todo: rename to "location"
     def path(self, state, key=None):
+        """Return a file path or URL pointing to the persisted state.
+        
+        If the key is omitted, the URL to the state item's container must be returned, and None if no such container exists.
+         
+        :param state: State to locate
+        :type state: int
+        :param key: Content key to locate
+        :type key: str
+        :rtype: str
+        :returns: Locator pointng to persisted state
+        :todo: rename to "location"
+        """
         k = self.name(state)
         self.__ensure_store(k)
         return self.__stores[k].path(key=key)
 
 
     def next(self, key=None):
+        """Advance and persist to the next pure state.
+
+        See shep.state.State.next
+        """
         from_state = self.state(key)
         to_state = super(PersistedState, self).next(key)
         return self.__movestore(key, from_state, to_state)
 
 
     def replace(self, key, contents):
+        """Replace contents associated by content key.
+
+        See shep.state.State.replace
+        """
         super(PersistedState, self).replace(key, contents)
         state = self.state(key)
         k = self.name(state)
