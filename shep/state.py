@@ -419,10 +419,23 @@ class State:
         pass
 
 
+    # In the memory-only class no persisted state is used, and this will return None.
+    # 
+    # See shep.persist.PersistedState.path for more information.
     def path(self, state, key=None):
         return None
 
 
+    # Return the next pure state.
+    # 
+    # Will return the same result as the method next, but without advancing to the new state.
+    #
+    # :param key: Content key to inspect state for
+    # :type key: str
+    # :raises StateItemNotFound: Unknown content key
+    # :raises StateInvalid: Attempt to advance from an alias state, OR beyond the last known pure state.
+    # :rtype: int
+    # :returns: Next state
     def peek(self, key):
         state = self.__keys_reverse.get(key)
         if state == None:
@@ -440,12 +453,27 @@ class State:
         return state
 
 
+    # Advance to the next pure state.
+    #
+    # :param key: Content key to inspect state for
+    # :type key: str
+    # :raises StateItemNotFound: Unknown content key
+    # :raises StateInvalid: Attempt to advance from an alias state, OR beyond the last known pure state.
+    # :rtype: int
+    # :returns: Next state
     def next(self, key):
         from_state = self.state(key)
         new_state = self.peek(key)
         return self.__move(key, from_state, new_state)
 
 
+    # Replace contents associated by content key.
+    # 
+    # :param key: Content key to replace for
+    # :type key: str
+    # :param contents: New contents
+    # :type contents: any
+    # :raises KeyError: Unknown content key
     def replace(self, key, contents):
         self.state(key)
         self.__contents[key] = contents

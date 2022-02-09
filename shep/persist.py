@@ -95,6 +95,17 @@ class PersistedState(State):
         return super(PersistedState, self).list(state)
 
 
+    # Return a file path or URL pointing to the persisted state.
+    #
+    # If the key is omitted, the URL to the state item's container must be returned, and None if no such container exists.
+    # 
+    # :param state: State to locate
+    # :type state: int
+    # :param key: Content key to locate
+    # :type key: str
+    # :rtype: str
+    # :returns: Locator pointng to persisted state
+    # :todo: rename to "location"
     def path(self, state, key=None):
         k = self.name(state)
         self.__ensure_store(k)
