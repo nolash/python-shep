@@ -18,7 +18,6 @@ class TestState(unittest.TestCase):
         for k in [
                 'f0o',
                 'f oo',
-                'f_oo',
             ]:
             with self.assertRaises(ValueError):
                 states.add(k)

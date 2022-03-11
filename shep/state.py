@@ -1,11 +1,17 @@
+# standard imports
+import re
+
 # local imports
 from shep.error import (
         StateExists,
         StateInvalid,
         StateItemExists,
         StateItemNotFound,
+        StateTransitionInvalid,
         )
 
+
+re_name = r'^[a-zA-Z_]+$'
 
 class State:
     """State is an in-memory bitmasked state store for key-value pairs, or even just keys alone.
@@ -22,17 +28,17 @@ class State:
 
     base_state_name = 'NEW'
 
-    def __init__(self, bits, logger=None):
+    def __init__(self, bits, logger=None, verifier=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
         setattr(self, self.base_state_name, 0)
-        #self.NEW = 0
 
         self.__reverse = {0: getattr(self, self.base_state_name)}
         self.__keys = {getattr(self, self.base_state_name): []}
         self.__keys_reverse = {}
         self.__contents = {}
+        self.verifier = verifier
 
 
     @classmethod
@@ -54,8 +60,8 @@ class State:
 
     # validates a state name and return its canonical representation
     def __check_name_valid(self, k):
-        if not k.isalpha():
-            raise ValueError('only alpha')
+        if not re.match(re_name, k):
+            raise ValueError('only alpha and underscore')
         return k.upper()
 
 
@@ -322,6 +328,11 @@ class State:
         new_state_list = self.__keys.get(to_state)
         if current_state_list == None:
             raise StateCorruptionError(to_state)
+
+        if self.verifier != None:
+            r = self.verifier(self, from_state, to_state)
+            if r != None:
+                raise StateTransitionInvalid('{} -> {}: {}'.format(from_state, to_state, r))
 
         self.__add_state_list(to_state, key)
         current_state_list.pop(idx) 
