@@ -8,6 +8,7 @@ from shep.error import (
         StateItemExists,
         StateItemNotFound,
         StateTransitionInvalid,
+        StateCorruptionError,
         )
 
 
@@ -129,7 +130,17 @@ class State:
     def __add_state_list(self, state, item):
         if self.__keys.get(state) == None:
             self.__keys[state] = []
-        self.__keys[state].append(item)
+        if not self.__is_pure(state) or state == 0:
+            self.__keys[state].append(item)
+        c = 1
+        import sys
+        for i in range(self.__bits):
+            part = c & state
+            if part > 0:
+                if self.__keys.get(part) == None:
+                    self.__keys[part] = []
+                self.__keys[part].append(item)
+            c <<= 1
         self.__keys_reverse[item] = state
 
 
@@ -334,8 +345,8 @@ class State:
             if r != None:
                 raise StateTransitionInvalid(r)
 
-        self.__add_state_list(to_state, key)
         current_state_list.pop(idx) 
+        self.__add_state_list(to_state, key)
 
         return to_state
    
