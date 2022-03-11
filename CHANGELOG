@@ -1,5 +1,6 @@
 - 0.1.1
 	* Add optional, pluggable verifier to protect state transition
+	* Add change method for atomic simultaneous set and unset
 - 0.1.0
 	* Release version bump
 - 0.0.19:

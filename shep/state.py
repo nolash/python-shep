@@ -332,7 +332,7 @@ class State:
         if self.verifier != None:
             r = self.verifier(self, from_state, to_state)
             if r != None:
-                raise StateTransitionInvalid('{} -> {}: {}'.format(from_state, to_state, r))
+                raise StateTransitionInvalid(r)
 
         self.__add_state_list(to_state, key)
         current_state_list.pop(idx) 
@@ -367,7 +367,7 @@ class State:
 
         return self.__move(key, current_state, to_state)
 
-    
+
     def unset(self, key, not_state):
         """Unset a single bit, moving to a pure or alias state.
         
@@ -393,6 +393,28 @@ class State:
         to_state = current_state & (~not_state)
         if to_state == current_state:
             raise ValueError('invalid change for state {}: {}'.format(key, not_state))
+
+        if to_state == getattr(self, self.base_state_name):
+            raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))
+
+        new_state = self.__reverse.get(to_state)
+        if new_state == None:
+            raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
+
+        return self.__move(key, current_state, to_state)
+
+
+    def change(self, key, sets, unsets):
+        current_state = self.__keys_reverse.get(key)
+        if current_state == None:
+            raise StateItemNotFound(key)
+        to_state = current_state | sets
+        to_state &= ~unsets & self.__limit
+
+        if sets == 0:
+            to_state = current_state & (~unsets)
+            if to_state == current_state:
+                raise ValueError('invalid change by unsets for state {}: {}'.format(key, unsets))
 
         if to_state == getattr(self, self.base_state_name):
             raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))

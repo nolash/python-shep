@@ -106,5 +106,35 @@ class TestState(unittest.TestCase):
         self.assertEqual(states.from_name('foo'), states.FOO)
 
 
+
+    def test_change(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('inky', states.FOO | states.BAR)
+        states.alias('pinky', states.FOO | states.BAZ)
+        states.put('abcd')
+        states.next('abcd')
+        states.set('abcd', states.BAR)
+        states.change('abcd', states.BAZ, states.BAR)
+        self.assertEqual(states.state('abcd'), states.PINKY)
+
+
+    def test_change_onezero(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('inky', states.FOO | states.BAR)
+        states.alias('pinky', states.FOO | states.BAZ)
+        states.put('abcd')
+        states.next('abcd')
+        states.change('abcd', states.BAR, 0)
+        self.assertEqual(states.state('abcd'), states.INKY)
+        states.change('abcd', 0, states.BAR)
+        self.assertEqual(states.state('abcd'), states.FOO)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -14,8 +14,8 @@ class PersistedState(State):
     :type logger: object
     """
 
-    def __init__(self, factory, bits, logger=None):
-        super(PersistedState, self).__init__(bits, logger=logger)
+    def __init__(self, factory, bits, logger=None, verifier=None):
+        super(PersistedState, self).__init__(bits, logger=logger, verifier=verifier)
         self.__store_factory = factory
         self.__stores = {}
 
@@ -67,6 +67,26 @@ class PersistedState(State):
         k_from = self.name(from_state)
 
         to_state = super(PersistedState, self).unset(key, not_state)
+
+        k_to = self.name(to_state)
+        self.__ensure_store(k_to)
+
+        contents = self.__stores[k_from].get(key)
+        self.__stores[k_to].add(key, contents)
+        self.__stores[k_from].remove(key)
+
+        return to_state
+
+
+    def change(self, key, bits_set, bits_unset):
+        """Persist a new state for a key or key/content.
+
+        See shep.state.State.unset
+        """
+        from_state = self.state(key)
+        k_from = self.name(from_state)
+
+        to_state = super(PersistedState, self).change(key, bits_set, bits_unset)
 
         k_to = self.name(to_state)
         self.__ensure_store(k_to)

@@ -73,7 +73,41 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             os.stat(fp)
    
-   
+  
+    def test_change(self):
+        self.states.alias('inky', self.states.FOO | self.states.BAR)
+        self.states.put('abcd', state=self.states.FOO, contents='foo')
+        self.states.change('abcd', self.states.BAR, 0)
+        
+        fp = os.path.join(self.d, 'INKY', 'abcd')
+        f = open(fp, 'r')
+        v = f.read()
+        f.close()
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        fp = os.path.join(self.d, 'BAR', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        self.states.change('abcd', 0, self.states.BAR)
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        f = open(fp, 'r')
+        v = f.read()
+        f.close()
+
+        fp = os.path.join(self.d, 'INKY', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        fp = os.path.join(self.d, 'BAR', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+
     def test_set(self):
         self.states.alias('xyzzy', self.states.FOO | self.states.BAR)
         self.states.put('abcd', state=self.states.FOO, contents='foo')
