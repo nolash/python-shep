@@ -136,5 +136,21 @@ class TestState(unittest.TestCase):
         self.assertEqual(states.state('abcd'), states.FOO)
 
 
+    def test_change_dates(self):
+        states = State(3)
+        states.add('foo')
+        states.put('abcd')
+        states.put('bcde')
+
+        a = states.modified('abcd')
+        b = states.modified('bcde')
+        self.assertGreater(b, a)
+
+        states.set('abcd', states.FOO)
+        a = states.modified('abcd')
+        b = states.modified('bcde')
+        self.assertGreater(a, b)
+
+
 if __name__ == '__main__':
     unittest.main()

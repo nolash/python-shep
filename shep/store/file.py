@@ -103,6 +103,16 @@ class SimpleFileStore:
         f.close()
 
 
+    def modified(self, k):
+        path = self.path(k)
+        st = os.stat(path)
+        return float(st.st_ctime())
+
+
+    def register_modify(self, k):
+        pass
+
+
 class SimpleFileStoreFactory:
     """Provide a method to instantiate SimpleFileStore instances that provide persistence for individual states.
 

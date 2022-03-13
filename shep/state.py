@@ -1,5 +1,6 @@
 # standard imports
 import re
+import datetime
 
 # local imports
 from shep.error import (
@@ -39,6 +40,7 @@ class State:
         self.__keys = {getattr(self, self.base_state_name): []}
         self.__keys_reverse = {}
         self.__contents = {}
+        self.__change = {}
         self.verifier = verifier
 
 
@@ -302,6 +304,8 @@ class State:
         if contents != None:
             self.__contents[key] = contents
 
+        self.register_modify(key)
+
         return state
                                 
 
@@ -347,6 +351,8 @@ class State:
 
         current_state_list.pop(idx) 
         self.__add_state_list(to_state, key)
+
+        self.register_modify(key)
 
         return to_state
    
@@ -549,3 +555,11 @@ class State:
         """
         self.state(key)
         self.__contents[key] = contents
+
+
+    def modified(self, key):
+        return self.__change[key]
+
+
+    def register_modify(self, key):
+        self.__change[key] = datetime.datetime.now().timestamp()
