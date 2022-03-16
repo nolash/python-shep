@@ -30,7 +30,7 @@ class State:
 
     base_state_name = 'NEW'
 
-    def __init__(self, bits, logger=None, verifier=None, check_alias=True):
+    def __init__(self, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
@@ -43,6 +43,7 @@ class State:
         self.modified_last = {}
         self.verifier = verifier
         self.check_alias = check_alias
+        self.event_callback = event_callback
 
 
     @classmethod
@@ -320,6 +321,9 @@ class State:
             self.__contents[key] = contents
 
         self.register_modify(key)
+        
+        if self.event_callback != None:
+            self.event_callback(key, state)
 
         return state
                                 
@@ -368,6 +372,9 @@ class State:
         self.__add_state_list(to_state, key)
 
         self.register_modify(key)
+
+        if self.event_callback != None:
+            self.event_callback(key, to_state)
 
         return to_state
    

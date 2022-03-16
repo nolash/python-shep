@@ -13,6 +13,18 @@ logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
 
 
+class MockCallback:
+
+    def __init__(self):
+        self.items = {}
+
+
+    def add(self, k, v):
+        if self.items.get(k) == None:
+            self.items[k] = []
+        self.items[k].append(v)
+
+
 class TestState(unittest.TestCase):
 
     def test_key_check(self):
@@ -175,6 +187,25 @@ class TestState(unittest.TestCase):
         a = states.modified('abcd')
         b = states.modified('bcde')
         self.assertGreater(a, b)
+
+
+    def test_event_callback(self):
+        cb = MockCallback()
+        states = State(3, event_callback=cb.add)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('xyzzy', states.FOO | states.BAR)
+        states.put('abcd')
+        states.set('abcd', states.FOO)
+        states.set('abcd', states.BAR)
+        states.change('abcd', states.BAZ, states.XYZZY)
+        events = cb.items['abcd']
+        self.assertEqual(len(events), 4)
+        self.assertEqual(events[0], states.NEW)
+        self.assertEqual(events[1], states.FOO)
+        self.assertEqual(events[2], states.XYZZY)
+        self.assertEqual(events[3], states.BAZ)
 
 
 if __name__ == '__main__':
