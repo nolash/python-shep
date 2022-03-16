@@ -30,7 +30,7 @@ class State:
 
     base_state_name = 'NEW'
 
-    def __init__(self, bits, logger=None, verifier=None):
+    def __init__(self, bits, logger=None, verifier=None, check_alias=True):
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
@@ -40,8 +40,9 @@ class State:
         self.__keys = {getattr(self, self.base_state_name): []}
         self.__keys_reverse = {}
         self.__contents = {}
-        self.__change = {}
+        self.modified_last = {}
         self.verifier = verifier
+        self.check_alias = check_alias
 
 
     @classmethod
@@ -135,7 +136,6 @@ class State:
         if not self.__is_pure(state) or state == 0:
             self.__keys[state].append(item)
         c = 1
-        import sys
         for i in range(self.__bits):
             part = c & state
             if part > 0:
@@ -215,6 +215,18 @@ class State:
         return l
 
 
+    def elements(self, v):
+        r = []
+        if v == None or v == 0:
+            return self.base_state_name
+        c = 1
+        for i in range(1, self.__bits):
+            if v & c > 0:
+                r.append(self.name(c))
+            c <<= 1
+        return '*' + ','.join(r)
+
+
     def name(self, v):
         """Retrieve that string representation of the state attribute represented by the given state integer value.
         
@@ -224,11 +236,14 @@ class State:
         :rtype: str
         :return: State name
         """
-        if v == None or v == 0:
-            return self.base_state_name
         k = self.__reverse.get(v)
         if k == None:
-            raise StateInvalid(v)
+            if self.check_alias:
+                raise StateInvalid(v)
+            else:
+                k = self.elements(v)
+        elif v == None or v == 0:
+            return self.base_state_name
         return k
 
 
@@ -379,7 +394,7 @@ class State:
 
         to_state = current_state | or_state
         new_state = self.__reverse.get(to_state)
-        if new_state == None:
+        if new_state == None and self.check_alias:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
 
         return self.__move(key, current_state, to_state)
@@ -558,8 +573,8 @@ class State:
 
 
     def modified(self, key):
-        return self.__change[key]
+        return self.modified_last[key]
 
 
     def register_modify(self, key):
-        self.__change[key] = datetime.datetime.now().timestamp()
+        self.modified_last[key] = datetime.datetime.now().timestamp()

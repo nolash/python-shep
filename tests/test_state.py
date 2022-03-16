@@ -1,5 +1,6 @@
 # standard imports
 import unittest
+import logging
 
 # local imports
 from shep import State
@@ -7,6 +8,9 @@ from shep.error import (
         StateExists,
         StateInvalid,
         )
+
+logging.basicConfig(level=logging.DEBUG)
+logg = logging.getLogger()
 
 
 class TestState(unittest.TestCase):
@@ -81,7 +85,29 @@ class TestState(unittest.TestCase):
         states.add('bar')
         with self.assertRaises(StateInvalid):
             states.alias('baz', 5)
-    
+
+
+    def test_alias_invalid(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+        states.put('abcd')
+        states.set('abcd', states.FOO)
+        with self.assertRaises(StateInvalid):
+            states.set('abcd', states.BAR)
+
+
+    def test_alias_invalid_ignore(self):
+        states = State(3, check_alias=False)
+        states.add('foo')
+        states.add('bar')
+        states.put('abcd')
+        states.set('abcd', states.FOO)
+        states.set('abcd', states.BAR)
+        v = states.state('abcd')
+        s = states.name(v)
+        self.assertEqual(s, '*FOO,BAR')
+
 
     def test_peek(self):
         states = State(3)
@@ -104,7 +130,6 @@ class TestState(unittest.TestCase):
         states = State(3)
         states.add('foo')
         self.assertEqual(states.from_name('foo'), states.FOO)
-
 
 
     def test_change(self):

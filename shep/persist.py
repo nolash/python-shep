@@ -1,3 +1,6 @@
+# standard imports
+import datetime
+
 # local imports
 from .state import State
 from .error import StateItemExists
@@ -95,6 +98,8 @@ class PersistedState(State):
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
 
+        self.register_modify(key)
+
         return to_state
 
 
@@ -118,6 +123,8 @@ class PersistedState(State):
         contents = self.__stores[k_from].get(key)
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
+
+        self.register_modify(key)
 
         return to_state
 
@@ -192,3 +199,9 @@ class PersistedState(State):
         state = self.state(key)
         k = self.name(state)
         return self.__stores[k].replace(key, contents)
+
+
+    def modified(self, key):
+        state = self.state(key)
+        k = self.name(state)
+        return self.__stores[k].modified(key)

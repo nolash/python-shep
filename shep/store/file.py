@@ -106,7 +106,7 @@ class SimpleFileStore:
     def modified(self, k):
         path = self.path(k)
         st = os.stat(path)
-        return float(st.st_ctime())
+        return st.st_ctime
 
 
     def register_modify(self, k):
