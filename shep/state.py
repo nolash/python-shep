@@ -31,6 +31,7 @@ class State:
     base_state_name = 'NEW'
 
     def __init__(self, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
+        self.__initial_bits = bits
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
@@ -92,6 +93,9 @@ class State:
 
     # enforces state value within bit limit of instantiation
     def __check_limit(self, v):
+        if self.__initial_bits == 0:
+            self.__bits += 1
+        self.__limit = (1 << self.__bits) - 1
         if v > self.__limit:
             raise OverflowError(v)
         return v

@@ -208,5 +208,12 @@ class TestState(unittest.TestCase):
         self.assertEqual(events[3], states.BAZ)
 
 
+    def test_dynamic(self):
+        states = State(0)
+        states.add('foo')
+        states.add('bar')
+        states.alias('baz', states.FOO | states.BAR)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,7 @@
 	* Optional, pluggable verifier to protect state transition
 	* Change method for atomic simultaneous set and unset
 	* Optionally allow undefined composite states
+	* Dynamic bits
 - 0.1.0
 	* Release version bump
 - 0.0.19:
