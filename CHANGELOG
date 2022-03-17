@@ -3,6 +3,8 @@
 	* Change method for atomic simultaneous set and unset
 	* Optionally allow undefined composite states
 	* Dynamic bits
+	* Optional binary contents
+	* Sync all if no state passed as argument
 - 0.1.0
 	* Release version bump
 - 0.0.19:

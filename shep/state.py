@@ -317,7 +317,7 @@ class State:
         """
         if state == None:
             state = getattr(self, self.base_state_name)
-        elif self.__reverse.get(state) == None:
+        elif self.__reverse.get(state) == None and self.check_alias:
             raise StateInvalid(state)
         self.__check_key(key)
         self.__add_state_list(state, key)

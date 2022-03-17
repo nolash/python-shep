@@ -129,7 +129,7 @@ class PersistedState(State):
         return to_state
 
 
-    def sync(self, state):
+    def sync(self, state=None):
         """Reload resources for a single state in memory from the persisted state store.
 
         :param state: State to load
@@ -137,16 +137,24 @@ class PersistedState(State):
         :raises StateItemExists: A content key is already recorded with a different state in memory than in persisted store.
         # :todo: if sync state is none, sync all
         """
-        k = self.name(state)
+        states = []
+        if state == None:
+            states = list(self.all())
+        else:
+            states = [self.name(state)]
 
-        self.__ensure_store(k)
+        ks = []
+        for k in states:
+            ks.append(k)
 
-        for o in self.__stores[k].list():
+        for k in ks:
             self.__ensure_store(k)
-            try:
-                super(PersistedState, self).put(o[0], state=state, contents=o[1])
-            except StateItemExists:
-                pass
+            for o in self.__stores[k].list():
+                state = self.from_name(k)
+                try:
+                    super(PersistedState, self).put(o[0], state=state, contents=o[1])
+                except StateItemExists as e:
+                    pass
 
 
     def list(self, state):

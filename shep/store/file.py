@@ -8,10 +8,14 @@ class SimpleFileStore:
     :param path: Filesystem base path for all state directory
     :type path: str
     """
-    def __init__(self, path):
+    def __init__(self, path, binary=False):
         self.__path = path
         os.makedirs(self.__path, exist_ok=True)
-
+        if binary:
+            self.__m = ['rb', 'wb']
+        else:
+            self.__m = ['r', 'w']
+                
 
     def add(self, k, contents=None):
         """Add a new key and optional contents 
@@ -25,7 +29,7 @@ class SimpleFileStore:
         if contents == None:
             contents = ''
 
-        f = open(fp, 'w')
+        f = open(fp, self.__m[1])
         f.write(contents)
         f.close()
 
@@ -51,7 +55,7 @@ class SimpleFileStore:
         :return: Contents
         """
         fp = os.path.join(self.__path, k)
-        f = open(fp, 'r')
+        f = open(fp, self.__m[0])
         r = f.read()
         f.close()
         return r
@@ -66,7 +70,7 @@ class SimpleFileStore:
         files = []
         for p in os.listdir(self.__path):
             fp = os.path.join(self.__path, p)
-            f = open(fp, 'r')
+            f = open(fp, self.__m[0])
             r = f.read()
             f.close()
             if len(r) == 0:
@@ -98,7 +102,7 @@ class SimpleFileStore:
         """
         fp = os.path.join(self.__path, k)
         os.stat(fp)
-        f = open(fp, 'w')
+        f = open(fp, self.__m[1])
         r = f.write(contents)
         f.close()
 
@@ -119,8 +123,9 @@ class SimpleFileStoreFactory:
     :param path: Filesystem path as base path for states
     :type path: str
     """
-    def __init__(self, path):
+    def __init__(self, path, binary=False):
         self.__path = path
+        self.__binary = binary
 
 
     def add(self, k):
@@ -133,4 +138,4 @@ class SimpleFileStoreFactory:
         """
         k = str(k)
         store_path = os.path.join(self.__path, k)
-        return SimpleFileStore(store_path)
+        return SimpleFileStore(store_path, binary=self.__binary)
