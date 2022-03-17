@@ -513,7 +513,7 @@ class State:
             return []
 
 
-    def sync(self, state):
+    def sync(self, state=None):
         """Noop method for interface implementation providing sync to backend.
         
         :param state: State to sync.
