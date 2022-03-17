@@ -48,11 +48,12 @@ class TestState(unittest.TestCase):
 
 
     def test_limit(self):
-        states = State(2)
+        states = State(3)
         states.add('foo')
         states.add('bar')
+        states.add('baz')
         with self.assertRaises(OverflowError):
-            states.add('baz')
+            states.add('gaz')
 
 
     def test_dup(self):
@@ -122,7 +123,7 @@ class TestState(unittest.TestCase):
 
 
     def test_peek(self):
-        states = State(3)
+        states = State(2)
         states.add('foo')
         states.add('bar')
 
@@ -135,7 +136,7 @@ class TestState(unittest.TestCase):
         states.move('abcd', states.BAR)
 
         with self.assertRaises(StateInvalid):
-            self.assertEqual(states.peek('abcd'))
+            states.peek('abcd')
 
 
     def test_from_name(self):

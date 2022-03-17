@@ -200,6 +200,9 @@ class TestStateReport(unittest.TestCase):
         self.states.next('abcd')
         self.assertEqual(self.states.state('abcd'), self.states.BAR)
 
+        self.states.next('abcd')
+        self.assertEqual(self.states.state('abcd'), self.states.BAZ)
+
         with self.assertRaises(StateInvalid):
             self.states.next('abcd')
 
@@ -207,7 +210,7 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             os.stat(fp)
 
-        fp = os.path.join(self.d, 'BAR', 'abcd')
+        fp = os.path.join(self.d, 'BAZ', 'abcd')
         os.stat(fp)
 
 

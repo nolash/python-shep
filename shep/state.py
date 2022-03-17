@@ -203,7 +203,7 @@ class State:
         self.__set(k, v)
 
 
-    def all(self):
+    def all(self, pure=False):
         """Return list of all unique atomic and alias states.
         
         :rtype: list of ints
@@ -215,6 +215,10 @@ class State:
                 continue
             if k.upper() != k:
                 continue
+            if pure:
+                state = self.from_name(k)
+                if not self.__is_pure(state):
+                    continue
             l.append(k)
         l.sort()
         return l
@@ -349,7 +353,7 @@ class State:
             raise StateItemNotFound(key)
 
         new_state = self.__reverse.get(to_state)
-        if new_state == None:
+        if new_state == None and self.check_alias:
             raise StateInvalid(to_state)
 
         return self.__move(key, current_state, to_state)
@@ -549,7 +553,7 @@ class State:
             state = 1
         else:
             state <<= 1
-        if state > self.__c:
+        if state > self.__limit:
             raise StateInvalid('unknown state {}'.format(state))
 
         return state

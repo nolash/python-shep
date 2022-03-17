@@ -27,7 +27,10 @@ class SimpleFileStore:
         """
         fp = os.path.join(self.__path, k)
         if contents == None:
-            contents = ''
+            if self.__m[1] == 'wb':
+                contents = b''
+            else:
+                contents = ''
 
         f = open(fp, self.__m[1])
         f.write(contents)
