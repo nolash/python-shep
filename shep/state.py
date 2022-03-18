@@ -92,10 +92,11 @@ class State:
 
 
     # enforces state value within bit limit of instantiation
-    def __check_limit(self, v):
-        if self.__initial_bits == 0:
-            self.__bits += 1
-        self.__limit = (1 << self.__bits) - 1
+    def __check_limit(self, v, pure=True):
+        if pure:
+            if self.__initial_bits == 0:
+                self.__bits += 1
+            self.__limit = (1 << self.__bits) - 1
         if v > self.__limit:
             raise OverflowError(v)
         return v
@@ -197,7 +198,7 @@ class State:
         v = 0
         for a in args:
             a = self.__check_value_cursor(a)
-            v = self.__check_limit(v | a)
+            v = self.__check_limit(v | a, pure=False)
         if self.__is_pure(v):
             raise ValueError('use add to add pure values')
         self.__set(k, v)
@@ -593,3 +594,11 @@ class State:
 
     def register_modify(self, key):
         self.modified_last[key] = datetime.datetime.now().timestamp()
+
+
+    def mask(self, key, states):
+        statemask = self.__limit + 1
+        statemask |= states
+        statemask = ~statemask
+        statemask &= self.__limit
+        return statemask

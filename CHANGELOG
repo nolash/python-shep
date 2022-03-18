@@ -5,6 +5,7 @@
 	* Dynamic bits
 	* Optional binary contents
 	* Sync all if no state passed as argument
+	* Mask method for client-side state manipulation
 - 0.1.0
 	* Release version bump
 - 0.0.19:

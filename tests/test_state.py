@@ -216,5 +216,26 @@ class TestState(unittest.TestCase):
         states.alias('baz', states.FOO | states.BAR)
 
 
+
+    def test_mask(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('all', states.FOO | states.BAR | states.BAZ)
+        mask = states.mask('xyzzy', states.FOO | states.BAZ)
+        self.assertEqual(mask, states.BAR)
+
+
+    def test_mask_dynamic(self):
+        states = State(0)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('all', states.FOO | states.BAR | states.BAZ)
+        mask = states.mask('xyzzy', states.FOO | states.BAZ)
+        self.assertEqual(mask, states.BAR)
+
+
 if __name__ == '__main__':
     unittest.main()
