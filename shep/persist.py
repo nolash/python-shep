@@ -58,6 +58,8 @@ class PersistedState(State):
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
 
+        self.sync(to_state)
+
         return to_state
 
 
@@ -125,6 +127,8 @@ class PersistedState(State):
         self.__stores[k_from].remove(key)
 
         self.register_modify(key)
+
+        self.sync(to_state)
 
         return to_state
 

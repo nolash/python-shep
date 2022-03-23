@@ -237,5 +237,15 @@ class TestState(unittest.TestCase):
         self.assertEqual(mask, states.BAR)
 
 
+    def test_mask_zero(self):
+        states = State(0)
+        states.add('foo')
+        states.add('bar')
+        states.add('baz')
+        states.alias('all', states.FOO | states.BAR | states.BAZ)
+        mask = states.mask('xyzzy')
+        self.assertEqual(mask, states.ALL)
+
+
 if __name__ == '__main__':
     unittest.main()

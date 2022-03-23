@@ -15,7 +15,7 @@ class SimpleFileStore:
             self.__m = ['rb', 'wb']
         else:
             self.__m = ['r', 'w']
-                
+
 
     def add(self, k, contents=None):
         """Add a new key and optional contents 

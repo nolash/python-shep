@@ -150,6 +150,9 @@ class State:
                 self.__keys[part].append(item)
             c <<= 1
         self.__keys_reverse[item] = state
+        if self.__reverse.get(state) == None:
+            s = self.elements(state)
+            self.alias(s, state)
 
 
     def __state_list_index(self, item, state_list):
@@ -234,7 +237,16 @@ class State:
             if v & c > 0:
                 r.append(self.name(c))
             c <<= 1
-        return '*' + ','.join(r)
+        return '_' + '_'.join(r)
+
+
+    def from_elements(self, k):
+        r = 0
+        if k[0] != '_':
+            raise ValueError('elements string must start with underscore (_), got {}'.format(k))
+        for v in k[1:].split('_'):
+            r |= self.from_name(v) 
+        return r
 
 
     def name(self, v):
@@ -325,14 +337,16 @@ class State:
         elif self.__reverse.get(state) == None and self.check_alias:
             raise StateInvalid(state)
         self.__check_key(key)
+
+        if self.event_callback != None:
+            old_state = self.__keys_reverse.get(key)
+            self.event_callback(key, 'nonexistent', self.name(state))
+
         self.__add_state_list(state, key)
         if contents != None:
             self.__contents[key] = contents
 
         self.register_modify(key)
-        
-        if self.event_callback != None:
-            self.event_callback(key, state)
 
         return state
                                 
@@ -378,12 +392,14 @@ class State:
                 raise StateTransitionInvalid(r)
 
         current_state_list.pop(idx) 
+
+        if self.event_callback != None:
+            old_state = self.__keys_reverse.get(key)
+            self.event_callback(key, self.name(old_state), self.name(to_state))
+
         self.__add_state_list(to_state, key)
 
         self.register_modify(key)
-
-        if self.event_callback != None:
-            self.event_callback(key, to_state)
 
         return to_state
    
@@ -596,7 +612,7 @@ class State:
         self.modified_last[key] = datetime.datetime.now().timestamp()
 
 
-    def mask(self, key, states):
+    def mask(self, key, states=0):
         statemask = self.__limit + 1
         statemask |= states
         statemask = ~statemask
