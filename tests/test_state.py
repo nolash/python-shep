@@ -17,12 +17,15 @@ class MockCallback:
 
     def __init__(self):
         self.items = {}
+        self.items_from = {}
 
 
-    def add(self, k, v):
+    def add(self, k, v_from, v_to):
         if self.items.get(k) == None:
             self.items[k] = []
-        self.items[k].append(v)
+            self.items_from[k] = []
+        self.items[k].append(v_to)
+        self.items_from[k].append(v_from)
 
 
 class TestState(unittest.TestCase):
@@ -119,7 +122,7 @@ class TestState(unittest.TestCase):
         states.set('abcd', states.BAR)
         v = states.state('abcd')
         s = states.name(v)
-        self.assertEqual(s, '*FOO,BAR')
+        self.assertEqual(s, '_FOO_BAR')
 
 
     def test_peek(self):
@@ -203,10 +206,10 @@ class TestState(unittest.TestCase):
         states.change('abcd', states.BAZ, states.XYZZY)
         events = cb.items['abcd']
         self.assertEqual(len(events), 4)
-        self.assertEqual(events[0], states.NEW)
-        self.assertEqual(events[1], states.FOO)
-        self.assertEqual(events[2], states.XYZZY)
-        self.assertEqual(events[3], states.BAZ)
+        self.assertEqual(states.from_name(events[0]), states.NEW)
+        self.assertEqual(states.from_name(events[1]), states.FOO)
+        self.assertEqual(states.from_name(events[2]), states.XYZZY)
+        self.assertEqual(states.from_name(events[3]), states.BAZ)
 
 
     def test_dynamic(self):
@@ -214,7 +217,6 @@ class TestState(unittest.TestCase):
         states.add('foo')
         states.add('bar')
         states.alias('baz', states.FOO | states.BAR)
-
 
 
     def test_mask(self):

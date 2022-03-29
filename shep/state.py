@@ -150,7 +150,7 @@ class State:
                 self.__keys[part].append(item)
             c <<= 1
         self.__keys_reverse[item] = state
-        if self.__reverse.get(state) == None:
+        if self.__reverse.get(state) == None and not self.check_alias:
             s = self.elements(state)
             self.alias(s, state)
 
@@ -340,7 +340,7 @@ class State:
 
         if self.event_callback != None:
             old_state = self.__keys_reverse.get(key)
-            self.event_callback(key, 'nonexistent', self.name(state))
+            self.event_callback(key, None, self.name(state))
 
         self.__add_state_list(state, key)
         if contents != None:

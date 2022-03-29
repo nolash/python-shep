@@ -33,6 +33,10 @@ class MockStore:
         return self.v[k]
 
 
+    def list(self):
+        return list(self.v.keys())
+
+
 class TestStateItems(unittest.TestCase):
         
     def setUp(self):
