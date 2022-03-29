@@ -170,7 +170,6 @@ class PersistedState(State):
         """
         k = self.name(state)
         self.__ensure_store(k)
-        #return self.__stores[k].list(state)
         return super(PersistedState, self).list(state)
 
 
