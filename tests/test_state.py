@@ -117,12 +117,13 @@ class TestState(unittest.TestCase):
         states = State(3, check_alias=False)
         states.add('foo')
         states.add('bar')
+        states.add('baz')
         states.put('abcd')
         states.set('abcd', states.FOO)
-        states.set('abcd', states.BAR)
+        states.set('abcd', states.BAZ)
         v = states.state('abcd')
         s = states.name(v)
-        self.assertEqual(s, '_FOO_BAR')
+        self.assertEqual(s, '_FOO_BAZ')
 
 
     def test_peek(self):

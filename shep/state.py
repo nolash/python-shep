@@ -233,7 +233,7 @@ class State:
         if v == None or v == 0:
             return self.base_state_name
         c = 1
-        for i in range(1, self.__bits):
+        for i in range(self.__bits):
             if v & c > 0:
                 r.append(self.name(c))
             c <<= 1
