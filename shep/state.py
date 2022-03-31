@@ -13,7 +13,7 @@ from shep.error import (
         )
 
 
-re_name = r'^[a-zA-Z_]+$'
+re_name = r'^[a-zA-Z_\.]+$'
 
 class State:
     """State is an in-memory bitmasked state store for key-value pairs, or even just keys alone.
