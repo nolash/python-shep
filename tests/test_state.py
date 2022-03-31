@@ -123,7 +123,7 @@ class TestState(unittest.TestCase):
         states.set('abcd', states.BAZ)
         v = states.state('abcd')
         s = states.name(v)
-        self.assertEqual(s, '_FOO_BAZ')
+        self.assertEqual(s, '_FOO.BAZ')
 
 
     def test_peek(self):

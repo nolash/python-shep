@@ -152,7 +152,7 @@ class State:
         self.__keys_reverse[item] = state
         if self.__reverse.get(state) == None and not self.check_alias:
             s = self.elements(state)
-            self.alias(s, state)
+            self.__alias(s, state)
 
 
     def __state_list_index(self, item, state_list):
@@ -183,7 +183,17 @@ class State:
         k = self.__check_name(k)
         v = self.__check_value(v)
         self.__set(k, v)
-        
+
+
+    def __alias(self, k, *args):
+        v = 0
+        for a in args:
+            a = self.__check_value_cursor(a)
+            v = self.__check_limit(v | a, pure=False)
+        if self.__is_pure(v):
+            raise ValueError('use add to add pure values')
+        return self.__set(k, v)
+
 
     def alias(self, k, *args):
         """Add an alias for a combination of states in the store.
@@ -198,13 +208,7 @@ class State:
         :raises ValueError: Attempt to use bit value as alias
         """
         k = self.__check_name(k)
-        v = 0
-        for a in args:
-            a = self.__check_value_cursor(a)
-            v = self.__check_limit(v | a, pure=False)
-        if self.__is_pure(v):
-            raise ValueError('use add to add pure values')
-        self.__set(k, v)
+        return self.__alias(k, *args)    
 
 
     def all(self, pure=False):
@@ -237,14 +241,14 @@ class State:
             if v & c > 0:
                 r.append(self.name(c))
             c <<= 1
-        return '_' + '_'.join(r)
+        return '_' + '.'.join(r)
 
 
     def from_elements(self, k):
         r = 0
         if k[0] != '_':
             raise ValueError('elements string must start with underscore (_), got {}'.format(k))
-        for v in k[1:].split('_'):
+        for v in k[1:].split('.'):
             r |= self.from_name(v) 
         return r
 
