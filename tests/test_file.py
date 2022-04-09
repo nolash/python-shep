@@ -13,12 +13,12 @@ from shep.error import (
         )
 
 
-class TestStateReport(unittest.TestCase):
+class TestFileStore(unittest.TestCase):
         
     def setUp(self):
         self.d = tempfile.mkdtemp()
         self.factory = SimpleFileStoreFactory(self.d)
-        self.states = PersistedState(self.factory.add, 4)
+        self.states = PersistedState(self.factory.add, 3)
         self.states.add('foo') 
         self.states.add('bar') 
         self.states.add('baz') 
@@ -205,6 +205,9 @@ class TestStateReport(unittest.TestCase):
 
         with self.assertRaises(StateInvalid):
             self.states.next('abcd')
+
+        v = self.states.state('abcd')
+        self.assertEqual(v, self.states.BAZ)
 
         fp = os.path.join(self.d, 'FOO', 'abcd')
         with self.assertRaises(FileNotFoundError):

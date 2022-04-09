@@ -1,3 +1,6 @@
+- 0.2.0
+	* Add redis backend
+	* UTC timestamp for modification time in core state
 - 0.1.1
 	* Optional, pluggable verifier to protect state transition
 	* Change method for atomic simultaneous set and unset

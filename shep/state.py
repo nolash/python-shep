@@ -613,7 +613,7 @@ class State:
 
 
     def register_modify(self, key):
-        self.modified_last[key] = datetime.datetime.now().timestamp()
+        self.modified_last[key] = datetime.datetime.utcnow().timestamp()
 
 
     def mask(self, key, states=0):

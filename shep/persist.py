@@ -41,6 +41,8 @@ class PersistedState(State):
         self.__ensure_store(k)
         self.__stores[k].add(key, contents)
 
+        self.register_modify(key)
+
 
     def set(self, key, or_state):
         """Persist a new state for a key or key/content.
