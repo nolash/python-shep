@@ -33,6 +33,10 @@ class MockStore:
         return self.v[k]
 
 
+    def list(self):
+        return list(self.v.keys())
+
+
 class TestStateItems(unittest.TestCase):
         
     def setUp(self):
@@ -78,6 +82,7 @@ class TestStateItems(unittest.TestCase):
         self.states.move(item, self.states.BAZ)
         self.assertEqual(self.mockstore.for_state, self.states.name(self.states.BAZ))
         self.assertIsNone(self.mockstore.v.get(item))
+
 
 
 if __name__ == '__main__':

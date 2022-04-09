@@ -73,7 +73,41 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             os.stat(fp)
    
-   
+  
+    def test_change(self):
+        self.states.alias('inky', self.states.FOO | self.states.BAR)
+        self.states.put('abcd', state=self.states.FOO, contents='foo')
+        self.states.change('abcd', self.states.BAR, 0)
+        
+        fp = os.path.join(self.d, 'INKY', 'abcd')
+        f = open(fp, 'r')
+        v = f.read()
+        f.close()
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        fp = os.path.join(self.d, 'BAR', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        self.states.change('abcd', 0, self.states.BAR)
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        f = open(fp, 'r')
+        v = f.read()
+        f.close()
+
+        fp = os.path.join(self.d, 'INKY', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+        fp = os.path.join(self.d, 'BAR', 'abcd')
+        with self.assertRaises(FileNotFoundError):
+            os.stat(fp)
+
+
     def test_set(self):
         self.states.alias('xyzzy', self.states.FOO | self.states.BAR)
         self.states.put('abcd', state=self.states.FOO, contents='foo')
@@ -108,7 +142,7 @@ class TestStateReport(unittest.TestCase):
             os.stat(fp)
 
 
-    def test_sync(self):
+    def test_sync_one(self):
         self.states.put('abcd', state=self.states.FOO, contents='foo')
         self.states.put('xxx', state=self.states.FOO)
         self.states.put('yyy', state=self.states.FOO)
@@ -126,6 +160,25 @@ class TestStateReport(unittest.TestCase):
         self.states.sync(self.states.FOO)
         self.assertEqual(self.states.get('yyy'), None)
         self.assertEqual(self.states.get('zzzz'), 'xyzzy')
+
+
+    def test_sync_all(self):
+        self.states.put('abcd', state=self.states.FOO)
+        self.states.put('xxx', state=self.states.BAR)
+
+        fp = os.path.join(self.d, 'FOO', 'abcd')
+        f = open(fp, 'w')
+        f.write('foofoo')
+        f.close()
+
+        fp = os.path.join(self.d, 'BAR', 'zzzz')
+        f = open(fp, 'w')
+        f.write('barbar')
+        f.close()
+
+        self.states.sync()
+        self.assertEqual(self.states.get('abcd'), None)
+        self.assertEqual(self.states.get('zzzz'), 'barbar')
 
 
     def test_path(self):
@@ -147,6 +200,9 @@ class TestStateReport(unittest.TestCase):
         self.states.next('abcd')
         self.assertEqual(self.states.state('abcd'), self.states.BAR)
 
+        self.states.next('abcd')
+        self.assertEqual(self.states.state('abcd'), self.states.BAZ)
+
         with self.assertRaises(StateInvalid):
             self.states.next('abcd')
 
@@ -154,7 +210,7 @@ class TestStateReport(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             os.stat(fp)
 
-        fp = os.path.join(self.d, 'BAR', 'abcd')
+        fp = os.path.join(self.d, 'BAZ', 'abcd')
         os.stat(fp)
 
 

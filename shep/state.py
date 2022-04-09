@@ -1,11 +1,19 @@
+# standard imports
+import re
+import datetime
+
 # local imports
 from shep.error import (
         StateExists,
         StateInvalid,
         StateItemExists,
         StateItemNotFound,
+        StateTransitionInvalid,
+        StateCorruptionError,
         )
 
+
+re_name = r'^[a-zA-Z_\.]+$'
 
 class State:
     """State is an in-memory bitmasked state store for key-value pairs, or even just keys alone.
@@ -19,16 +27,29 @@ class State:
     :param logger: Standard library logging instance to output to
     :type logger: logging.Logger
     """
-    def __init__(self, bits, logger=None):
+
+    base_state_name = 'NEW'
+
+    def __init__(self, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
+        self.__initial_bits = bits
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
-        self.NEW = 0
+        setattr(self, self.base_state_name, 0)
 
-        self.__reverse = {0: self.NEW}
-        self.__keys = {self.NEW: []}
+        self.__reverse = {0: getattr(self, self.base_state_name)}
+        self.__keys = {getattr(self, self.base_state_name): []}
         self.__keys_reverse = {}
         self.__contents = {}
+        self.modified_last = {}
+        self.verifier = verifier
+        self.check_alias = check_alias
+        self.event_callback = event_callback
+
+
+    @classmethod
+    def set_default_state(cls, state_name):
+        cls.base_state_name = state_name.upper()
 
 
     # return true if v is a single-bit state
@@ -45,8 +66,8 @@ class State:
 
     # validates a state name and return its canonical representation
     def __check_name_valid(self, k):
-        if not k.isalpha():
-            raise ValueError('only alpha')
+        if not re.match(re_name, k):
+            raise ValueError('only alpha and underscore')
         return k.upper()
 
 
@@ -71,7 +92,11 @@ class State:
 
 
     # enforces state value within bit limit of instantiation
-    def __check_limit(self, v):
+    def __check_limit(self, v, pure=True):
+        if pure:
+            if self.__initial_bits == 0:
+                self.__bits += 1
+            self.__limit = (1 << self.__bits) - 1
         if v > self.__limit:
             raise OverflowError(v)
         return v
@@ -114,8 +139,20 @@ class State:
     def __add_state_list(self, state, item):
         if self.__keys.get(state) == None:
             self.__keys[state] = []
-        self.__keys[state].append(item)
+        if not self.__is_pure(state) or state == 0:
+            self.__keys[state].append(item)
+        c = 1
+        for i in range(self.__bits):
+            part = c & state
+            if part > 0:
+                if self.__keys.get(part) == None:
+                    self.__keys[part] = []
+                self.__keys[part].append(item)
+            c <<= 1
         self.__keys_reverse[item] = state
+        if self.__reverse.get(state) == None and not self.check_alias:
+            s = self.elements(state)
+            self.__alias(s, state)
 
 
     def __state_list_index(self, item, state_list):
@@ -146,7 +183,17 @@ class State:
         k = self.__check_name(k)
         v = self.__check_value(v)
         self.__set(k, v)
-        
+
+
+    def __alias(self, k, *args):
+        v = 0
+        for a in args:
+            a = self.__check_value_cursor(a)
+            v = self.__check_limit(v | a, pure=False)
+        if self.__is_pure(v):
+            raise ValueError('use add to add pure values')
+        return self.__set(k, v)
+
 
     def alias(self, k, *args):
         """Add an alias for a combination of states in the store.
@@ -161,16 +208,10 @@ class State:
         :raises ValueError: Attempt to use bit value as alias
         """
         k = self.__check_name(k)
-        v = 0
-        for a in args:
-            a = self.__check_value_cursor(a)
-            v = self.__check_limit(v | a)
-        if self.__is_pure(v):
-            raise ValueError('use add to add pure values')
-        self.__set(k, v)
+        return self.__alias(k, *args)    
 
 
-    def all(self):
+    def all(self, pure=False):
         """Return list of all unique atomic and alias states.
         
         :rtype: list of ints
@@ -182,9 +223,34 @@ class State:
                 continue
             if k.upper() != k:
                 continue
+            if pure:
+                state = self.from_name(k)
+                if not self.__is_pure(state):
+                    continue
             l.append(k)
         l.sort()
         return l
+
+
+    def elements(self, v):
+        r = []
+        if v == None or v == 0:
+            return self.base_state_name
+        c = 1
+        for i in range(self.__bits):
+            if v & c > 0:
+                r.append(self.name(c))
+            c <<= 1
+        return '_' + '.'.join(r)
+
+
+    def from_elements(self, k):
+        r = 0
+        if k[0] != '_':
+            raise ValueError('elements string must start with underscore (_), got {}'.format(k))
+        for v in k[1:].split('.'):
+            r |= self.from_name(v) 
+        return r
 
 
     def name(self, v):
@@ -196,11 +262,14 @@ class State:
         :rtype: str
         :return: State name
         """
-        if v == None or v == 0:
-            return 'NEW'
         k = self.__reverse.get(v)
         if k == None:
-            raise StateInvalid(v)
+            if self.check_alias:
+                raise StateInvalid(v)
+            else:
+                k = self.elements(v)
+        elif v == None or v == 0:
+            return self.base_state_name
         return k
 
 
@@ -252,13 +321,13 @@ class State:
     def put(self, key, state=None, contents=None):
         """Add a key to an existing state.
         
-        If no state it specified, the default state attribute "NEW" will be used.
+        If no state it specified, the default state attribute State.base_state_name will be used.
         
         Contents may be supplied as value to pair with the given key. Contents may be changed later by calling the `replace` method.
         
         :param key: Content key to add
         :type key: str
-        :param state: Initial state for the put. If not given, initial state will be NEW
+        :param state: Initial state for the put. If not given, initial state will be State.base_state_name
         :type state: int
         :param contents: Contents to associate with key. A valie of None should be recognized as an undefined value as opposed to a zero-length value throughout any backend
         :type contents: str
@@ -268,13 +337,20 @@ class State:
         :return: Resulting state that key is put under (should match the input state)
         """
         if state == None:
-            state = self.NEW
-        elif self.__reverse.get(state) == None:
+            state = getattr(self, self.base_state_name)
+        elif self.__reverse.get(state) == None and self.check_alias:
             raise StateInvalid(state)
         self.__check_key(key)
+
+        if self.event_callback != None:
+            old_state = self.__keys_reverse.get(key)
+            self.event_callback(key, None, self.name(state))
+
         self.__add_state_list(state, key)
         if contents != None:
             self.__contents[key] = contents
+
+        self.register_modify(key)
 
         return state
                                 
@@ -296,7 +372,7 @@ class State:
             raise StateItemNotFound(key)
 
         new_state = self.__reverse.get(to_state)
-        if new_state == None:
+        if new_state == None and self.check_alias:
             raise StateInvalid(to_state)
 
         return self.__move(key, current_state, to_state)
@@ -314,8 +390,20 @@ class State:
         if current_state_list == None:
             raise StateCorruptionError(to_state)
 
-        self.__add_state_list(to_state, key)
+        if self.verifier != None:
+            r = self.verifier(self, from_state, to_state)
+            if r != None:
+                raise StateTransitionInvalid(r)
+
         current_state_list.pop(idx) 
+
+        if self.event_callback != None:
+            old_state = self.__keys_reverse.get(key)
+            self.event_callback(key, self.name(old_state), self.name(to_state))
+
+        self.__add_state_list(to_state, key)
+
+        self.register_modify(key)
 
         return to_state
    
@@ -342,22 +430,22 @@ class State:
 
         to_state = current_state | or_state
         new_state = self.__reverse.get(to_state)
-        if new_state == None:
+        if new_state == None and self.check_alias:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
 
         return self.__move(key, current_state, to_state)
 
-    
+
     def unset(self, key, not_state):
         """Unset a single bit, moving to a pure or alias state.
         
-        The resulting state cannot be NEW (0).
+        The resulting state cannot be State.base_state_name (0).
          
         :param key: Content key to modify state for
         :type key: str
         :param or_state: Atomic stat to add
         :type or_state: int
-        :raises ValueError: State is not a single bit state, or attempts to revert to NEW
+        :raises ValueError: State is not a single bit state, or attempts to revert to State.base_state_name
         :raises StateItemNotFound: Content key is not registered
         :raises StateInvalid: Resulting state after addition of atomic state is unknown
         :rtype: int
@@ -374,8 +462,30 @@ class State:
         if to_state == current_state:
             raise ValueError('invalid change for state {}: {}'.format(key, not_state))
 
-        if to_state == self.NEW:
-            raise ValueError('State {} for {} cannot be reverted to NEW'.format(current_state, key))
+        if to_state == getattr(self, self.base_state_name):
+            raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))
+
+        new_state = self.__reverse.get(to_state)
+        if new_state == None:
+            raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
+
+        return self.__move(key, current_state, to_state)
+
+
+    def change(self, key, sets, unsets):
+        current_state = self.__keys_reverse.get(key)
+        if current_state == None:
+            raise StateItemNotFound(key)
+        to_state = current_state | sets
+        to_state &= ~unsets & self.__limit
+
+        if sets == 0:
+            to_state = current_state & (~unsets)
+            if to_state == current_state:
+                raise ValueError('invalid change by unsets for state {}: {}'.format(key, unsets))
+
+        if to_state == getattr(self, self.base_state_name):
+            raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))
 
         new_state = self.__reverse.get(to_state)
         if new_state == None:
@@ -424,7 +534,7 @@ class State:
             return []
 
 
-    def sync(self, state):
+    def sync(self, state=None):
         """Noop method for interface implementation providing sync to backend.
         
         :param state: State to sync.
@@ -464,7 +574,7 @@ class State:
             state = 1
         else:
             state <<= 1
-        if state > self.__c:
+        if state > self.__limit:
             raise StateInvalid('unknown state {}'.format(state))
 
         return state
@@ -496,3 +606,19 @@ class State:
         """
         self.state(key)
         self.__contents[key] = contents
+
+
+    def modified(self, key):
+        return self.modified_last[key]
+
+
+    def register_modify(self, key):
+        self.modified_last[key] = datetime.datetime.now().timestamp()
+
+
+    def mask(self, key, states=0):
+        statemask = self.__limit + 1
+        statemask |= states
+        statemask = ~statemask
+        statemask &= self.__limit
+        return statemask

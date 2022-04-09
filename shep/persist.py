@@ -1,3 +1,6 @@
+# standard imports
+import datetime
+
 # local imports
 from .state import State
 from .error import StateItemExists
@@ -14,8 +17,8 @@ class PersistedState(State):
     :type logger: object
     """
 
-    def __init__(self, factory, bits, logger=None):
-        super(PersistedState, self).__init__(bits, logger=logger)
+    def __init__(self, factory, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
+        super(PersistedState, self).__init__(bits, logger=logger, verifier=verifier, check_alias=check_alias, event_callback=event_callback)
         self.__store_factory = factory
         self.__stores = {}
 
@@ -55,6 +58,8 @@ class PersistedState(State):
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
 
+        self.sync(to_state)
+
         return to_state
 
 
@@ -74,6 +79,28 @@ class PersistedState(State):
         contents = self.__stores[k_from].get(key)
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
+
+        return to_state
+
+
+    def change(self, key, bits_set, bits_unset):
+        """Persist a new state for a key or key/content.
+
+        See shep.state.State.unset
+        """
+        from_state = self.state(key)
+        k_from = self.name(from_state)
+
+        to_state = super(PersistedState, self).change(key, bits_set, bits_unset)
+
+        k_to = self.name(to_state)
+        self.__ensure_store(k_to)
+
+        contents = self.__stores[k_from].get(key)
+        self.__stores[k_to].add(key, contents)
+        self.__stores[k_from].remove(key)
+
+        self.register_modify(key)
 
         return to_state
 
@@ -99,10 +126,14 @@ class PersistedState(State):
         self.__stores[k_to].add(key, contents)
         self.__stores[k_from].remove(key)
 
+        self.register_modify(key)
+
+        self.sync(to_state)
+
         return to_state
 
 
-    def sync(self, state):
+    def sync(self, state=None):
         """Reload resources for a single state in memory from the persisted state store.
 
         :param state: State to load
@@ -110,16 +141,24 @@ class PersistedState(State):
         :raises StateItemExists: A content key is already recorded with a different state in memory than in persisted store.
         # :todo: if sync state is none, sync all
         """
-        k = self.name(state)
+        states = []
+        if state == None:
+            states = list(self.all())
+        else:
+            states = [self.name(state)]
 
-        self.__ensure_store(k)
+        ks = []
+        for k in states:
+            ks.append(k)
 
-        for o in self.__stores[k].list():
+        for k in ks:
             self.__ensure_store(k)
-            try:
-                super(PersistedState, self).put(o[0], state=state, contents=o[1])
-            except StateItemExists:
-                pass
+            for o in self.__stores[k].list():
+                state = self.from_name(k)
+                try:
+                    super(PersistedState, self).put(o[0], state=state, contents=o[1])
+                except StateItemExists as e:
+                    pass
 
 
     def list(self, state):
@@ -131,7 +170,6 @@ class PersistedState(State):
         """
         k = self.name(state)
         self.__ensure_store(k)
-        #return self.__stores[k].list(state)
         return super(PersistedState, self).list(state)
 
 
@@ -172,3 +210,9 @@ class PersistedState(State):
         state = self.state(key)
         k = self.name(state)
         return self.__stores[k].replace(key, contents)
+
+
+    def modified(self, key):
+        state = self.state(key)
+        k = self.name(state)
+        return self.__stores[k].modified(key)

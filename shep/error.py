@@ -26,3 +26,9 @@ class StateCorruptionError(RuntimeError):
     """An irrecoverable discrepancy between persisted state and memory state has occurred.
     """
     pass
+
+
+class StateTransitionInvalid(Exception):
+    """Raised if state transition verification fails
+    """
+    pass
