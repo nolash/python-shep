@@ -1,5 +1,6 @@
 # standard imports
 import datetime
+import os
 
 # external imports
 import rocksdb
@@ -71,14 +72,12 @@ class RocksDbStore:
 
         r = []
         l = len(self.__path)
-        import sys
         for (kb, v) in it:
             k = kb.decode('utf-8') 
             if len(k) < l or k[:l] != self.__path:
                 break
             k = self.__from_path(k)
             v = self.db.get(kb)
-            sys.stderr.write('ls keys {} {} {}\n'.format(k, kb, v))
             r.append((k, v,))
 
         return r
@@ -118,6 +117,10 @@ class RocksDbStore:
 class RocksDbStoreFactory(StoreFactory):
 
     def __init__(self, path, binary=False):
+        try:
+            os.stat(path)
+        except FileNotFoundError:
+            os.makedirs(path)
         self.db = rocksdb.DB(path, rocksdb.Options(create_if_missing=True))
         self.__binary = binary
 
@@ -130,3 +133,15 @@ class RocksDbStoreFactory(StoreFactory):
     def close(self):
         self.db.close()
 
+
+    def ls(self):
+        it = self.db.iterkeys()
+        r = []
+        for k in it:
+            kstr = k.decode('utf-8')
+            v = None
+            try:
+                k.index('/')
+            except ValueError:
+                r.append(kstr)
+        return r
