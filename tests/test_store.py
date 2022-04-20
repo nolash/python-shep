@@ -84,6 +84,5 @@ class TestStateItems(unittest.TestCase):
         self.assertIsNone(self.mockstore.v.get(item))
 
 
-
 if __name__ == '__main__':
     unittest.main()

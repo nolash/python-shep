@@ -242,6 +242,20 @@ class TestFileStore(unittest.TestCase):
         self.assertEqual(r, 'foo')
 
 
+    def test_factory_ls(self):
+        self.states.put('abcd')
+        self.states.put('xxxx', state=self.states.BAZ)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 2)
+
+        self.states.put('yyyy', state=self.states.BAZ)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 2)
+
+        self.states.put('zzzz', state=self.states.BAR)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 3)
+
 
 if __name__ == '__main__':
     unittest.main()

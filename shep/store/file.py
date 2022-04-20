@@ -153,6 +153,7 @@ class SimpleFileStoreFactory(StoreFactory):
 
     def ls(self):
         r = []
+        import sys
         for v in os.listdir(self.__path):
             if re.match(re_processedname, v):
                 r.append(v)

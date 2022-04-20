@@ -23,6 +23,7 @@ class TestRedisStore(unittest.TestCase):
     def setUp(self):
         from shep.store.redis import RedisStoreFactory
         self.factory = RedisStoreFactory()
+        self.factory.redis.flushall()
         self.states = PersistedState(self.factory.add, 3)
         self.states.add('foo') 
         self.states.add('bar') 
@@ -64,6 +65,24 @@ class TestRedisStore(unittest.TestCase):
         self.states.replace('abcd', contents='bar')
         v = self.states.get('abcd')
         self.assertEqual(v, 'bar')
+
+
+    def test_factory_ls(self):
+        r = self.factory.ls()
+        self.assertEqual(len(r), 0)
+
+        self.states.put('abcd')
+        self.states.put('xxxx', state=self.states.BAZ)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 2)
+
+        self.states.put('yyyy', state=self.states.BAZ)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 2)
+
+        self.states.put('zzzz', state=self.states.BAR)
+        r = self.factory.ls()
+        self.assertEqual(len(r), 3)
 
 
 if __name__ == '__main__':

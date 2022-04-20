@@ -21,7 +21,7 @@ class RedisStore:
 
 
     def __from_path(self, s):
-        (left, right) = s.split('.', maxsplit=1)
+        (left, right) = s.split(b'.', maxsplit=1)
         return right
 
 
@@ -55,7 +55,7 @@ class RedisStore:
         r = []
         for s in matches:
             k = self.__from_path(s)
-            v = self.redis.get(v)
+            v = self.redis.get(k)
             r.append((k, v,))
 
         return r
@@ -91,7 +91,7 @@ class RedisStore:
 
 class RedisStoreFactory(StoreFactory):
 
-    def __init__(self, host='localhost', port=6379, db=0, binary=False):
+    def __init__(self, host='localhost', port=6379, db=2, binary=False):
         self.redis = redis.Redis(host=host, port=port, db=db)
         self.__binary = binary
 
@@ -103,3 +103,15 @@ class RedisStoreFactory(StoreFactory):
 
     def close(self):
         self.redis.close()
+
+
+    def ls(self):
+        r = []
+        (c, ks) = self.redis.scan(match='*')
+        for k in ks:
+            v = k.rsplit(b'.', maxsplit=1)
+            if v != k:
+                v = v[0].decode('utf-8')
+                if v not in r:
+                    r.append(v)
+        return r

@@ -136,12 +136,12 @@ class RocksDbStoreFactory(StoreFactory):
 
     def ls(self):
         it = self.db.iterkeys()
+        it.seek_to_first()
         r = []
         for k in it:
-            kstr = k.decode('utf-8')
-            v = None
-            try:
-                k.index('/')
-            except ValueError:
-                r.append(kstr)
+            v = k.rsplit(b'.', maxsplit=1)
+            if v != k:
+                v = v[0].decode('utf-8')
+                if v not in r:
+                    r.append(v)
         return r
