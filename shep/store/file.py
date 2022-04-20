@@ -3,7 +3,10 @@ import os
 import re
 
 # local imports
-from .base import re_processedname
+from .base import (
+        re_processedname,
+        StoreFactory,
+        )
 
 
 class SimpleFileStore:
@@ -124,7 +127,7 @@ class SimpleFileStore:
         pass
 
 
-class SimpleFileStoreFactory:
+class SimpleFileStoreFactory(StoreFactory):
     """Provide a method to instantiate SimpleFileStore instances that provide persistence for individual states.
 
     :param path: Filesystem path as base path for states

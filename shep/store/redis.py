@@ -4,6 +4,9 @@ import datetime
 # external imports
 import redis
 
+# local imports
+from .base import StoreFactory
+
 
 class RedisStore:
 
@@ -86,7 +89,7 @@ class RedisStore:
         self.redis.set(k)
 
 
-class RedisStoreFactory:
+class RedisStoreFactory(StoreFactory):
 
     def __init__(self, host='localhost', port=6379, db=0, binary=False):
         self.redis = redis.Redis(host=host, port=port, db=db)

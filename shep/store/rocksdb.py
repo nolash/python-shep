@@ -4,6 +4,10 @@ import datetime
 # external imports
 import rocksdb
 
+# local imports
+from .base import StoreFactory
+
+
 class RocksDbStore:
 
     def __init__(self, path, db, binary=False):
@@ -109,7 +113,7 @@ class RocksDbStore:
         self.db.set(k)
 
 
-class RocksDbStoreFactory:
+class RocksDbStoreFactory(StoreFactory):
 
     def __init__(self, path, binary=False):
         self.db = rocksdb.DB(path, rocksdb.Options(create_if_missing=True))
