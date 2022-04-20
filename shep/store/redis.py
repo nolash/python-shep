@@ -96,3 +96,7 @@ class RedisStoreFactory:
     def add(self, k):
         k = str(k)
         return RedisStore(k, self.redis, binary=self.__binary)
+
+
+    def close(self):
+        self.redis.close()

@@ -154,3 +154,7 @@ class SimpleFileStoreFactory:
             if re.match(re_processedname, v):
                 r.append(v)
         return r
+
+
+    def close(self):
+        pass

@@ -119,3 +119,8 @@ class RocksDbStoreFactory:
     def add(self, k):
         k = str(k)
         return RocksDbStore(k, self.db, binary=self.__binary)
+
+
+    def close(self):
+        self.db.close()
+
