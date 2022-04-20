@@ -2,15 +2,24 @@
 import datetime
 
 # external imports
-import redis
+import rocksdb
 
+class RocksDbStore:
 
-class RedisStore:
-
-    def __init__(self, path, redis, binary=False):
-        self.redis = redis
+    def __init__(self, path, db, binary=False):
+        self.db = db
         self.__path = path
         self.__binary = binary
+
+
+    def __to_key(self, k):
+        return k.encode('utf-8')
+
+
+    def __to_contents(self, v):
+        if isinstance(v, bytes):
+            return v
+        return v.encode('utf-8')
 
 
     def __to_path(self, k):
@@ -31,28 +40,39 @@ class RedisStore:
     def add(self, k, contents=b''):
         if contents == None:
             contents = b''
+        else:
+            contents = self.__to_contents(contents)
         k = self.__to_path(k)
-        self.redis.set(k, contents)
+        k = self.__to_key(k)
+        self.db.put(k, contents)
 
 
     def remove(self, k):
         k = self.__to_path(k)
-        self.redis.delete(k)
+        k = self.__to_key(k)
+        self.db.delete(k)
 
 
     def get(self, k):
         k = self.__to_path(k)
-        v = self.redis.get(k)
+        k = self.__to_key(k)
+        v = self.db.get(k)
         return self.__to_result(v)
 
-    
+ 
     def list(self):
-        (cursor, matches) = self.redis.scan(match=self.__path + '.*')
+        it = self.db.iteritems()
+        kb_start = self.__to_key(self.__path)
+        it.seek(kb_start)
 
         r = []
-        for s in matches:
+        l = len(self.__path)
+        for (k, v) in it:
+            if len(k) < l or k[:l] != self.__path:
+                break
             k = self.__from_path(s)
-            v = self.redis.get(v)
+            kb = self.__to_key(k)
+            v = self.db.get(kb)
             r.append((k, v,))
 
         return r
@@ -65,17 +85,20 @@ class RedisStore:
     def replace(self, k, contents):
         if contents == None:
             contents = b''
+        else:
+            contents = self.__to_contents(contents)
         k = self.__to_path(k)
-        v = self.redis.get(k)
+        k = self.__to_key(k)
+        v = self.db.get(k)
         if v == None:
             raise FileNotFoundError(k)
-        self.redis.set(k, contents)
+        self.db.put(k, contents)
 
 
     def modified(self, k):
         k = self.__to_path(k)
         k = '_mod' + k
-        v = self.redis.get(k)
+        v = self.db.get(k)
         return int(v)
 
 
@@ -83,16 +106,16 @@ class RedisStore:
         k = self.__to_path(k)
         k = '_mod' + k
         ts = datetime.datetime.utcnow().timestamp()
-        self.redis.set(k)
+        self.db.set(k)
 
 
-class RedisStoreFactory:
+class RocksDbStoreFactory:
 
-    def __init__(self, host='localhost', port=6379, db=0, binary=False):
-        self.redis = redis.Redis(host=host, port=port, db=db)
+    def __init__(self, path, binary=False):
+        self.db = rocksdb.DB(path, rocksdb.Options(create_if_missing=True))
         self.__binary = binary
 
 
     def add(self, k):
         k = str(k)
-        return RedisStore(k, self.redis, binary=self.__binary)
+        return RocksDbStore(k, self.db, binary=self.__binary)

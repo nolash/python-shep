@@ -2,6 +2,7 @@
 import unittest
 import tempfile
 import os
+import shutil
 
 # local imports
 from shep.persist import PersistedState
@@ -22,6 +23,10 @@ class TestFileStore(unittest.TestCase):
         self.states.add('foo') 
         self.states.add('bar') 
         self.states.add('baz') 
+
+
+    def tearDown(self):
+        shutil.rmtree(self.d)
 
 
     def test_add(self):
