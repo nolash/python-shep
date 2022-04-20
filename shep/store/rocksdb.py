@@ -71,12 +71,14 @@ class RocksDbStore:
 
         r = []
         l = len(self.__path)
-        for (k, v) in it:
+        import sys
+        for (kb, v) in it:
+            k = kb.decode('utf-8') 
             if len(k) < l or k[:l] != self.__path:
                 break
-            k = self.__from_path(s)
-            kb = self.__to_key(k)
+            k = self.__from_path(k)
             v = self.db.get(kb)
+            sys.stderr.write('ls keys {} {} {}\n'.format(k, kb, v))
             r.append((k, v,))
 
         return r

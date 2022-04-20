@@ -181,9 +181,17 @@ class TestFileStore(unittest.TestCase):
         f.write('barbar')
         f.close()
 
+        fp = os.path.join(self.d, 'BAR', 'yyyy')
+        f = open(fp, 'w')
+        f.close()
+
         self.states.sync()
         self.assertEqual(self.states.get('abcd'), None)
+        self.assertEqual(self.states.state('abcd'), self.states.FOO)
         self.assertEqual(self.states.get('zzzz'), 'barbar')
+        self.assertEqual(self.states.state('zzzz'), self.states.BAR)
+        self.assertEqual(self.states.get('yyyy'), None)
+        self.assertEqual(self.states.state('yyyy'), self.states.BAR)
 
 
     def test_path(self):
@@ -232,6 +240,7 @@ class TestFileStore(unittest.TestCase):
         r = f.read()
         f.close()
         self.assertEqual(r, 'foo')
+
 
 
 if __name__ == '__main__':
