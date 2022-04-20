@@ -37,7 +37,7 @@ class RocksDbStore:
         return v.decode('utf-8')
 
 
-    def add(self, k, contents=b''):
+    def put(self, k, contents=b''):
         if contents == None:
             contents = b''
         else:

@@ -1,5 +1,9 @@
 # standard imports
 import os
+import re
+
+# local imports
+from .base import re_processedname
 
 
 class SimpleFileStore:
@@ -17,7 +21,7 @@ class SimpleFileStore:
             self.__m = ['r', 'w']
 
 
-    def add(self, k, contents=None):
+    def put(self, k, contents=None):
         """Add a new key and optional contents 
 
         :param k: Content key to add 
@@ -142,3 +146,11 @@ class SimpleFileStoreFactory:
         k = str(k)
         store_path = os.path.join(self.__path, k)
         return SimpleFileStore(store_path, binary=self.__binary)
+
+
+    def ls(self):
+        r = []
+        for v in os.listdir(self.__path):
+            if re.match(re_processedname, v):
+                r.append(v)
+        return r

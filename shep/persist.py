@@ -39,7 +39,7 @@ class PersistedState(State):
         k = self.name(to_state)
 
         self.__ensure_store(k)
-        self.__stores[k].add(key, contents)
+        self.__stores[k].put(key, contents)
 
         self.register_modify(key)
 
@@ -57,7 +57,7 @@ class PersistedState(State):
         self.__ensure_store(k_to)
 
         contents = self.__stores[k_from].get(key)
-        self.__stores[k_to].add(key, contents)
+        self.__stores[k_to].put(key, contents)
         self.__stores[k_from].remove(key)
 
         self.sync(to_state)
@@ -79,7 +79,7 @@ class PersistedState(State):
         self.__ensure_store(k_to)
 
         contents = self.__stores[k_from].get(key)
-        self.__stores[k_to].add(key, contents)
+        self.__stores[k_to].put(key, contents)
         self.__stores[k_from].remove(key)
 
         return to_state
@@ -99,7 +99,7 @@ class PersistedState(State):
         self.__ensure_store(k_to)
 
         contents = self.__stores[k_from].get(key)
-        self.__stores[k_to].add(key, contents)
+        self.__stores[k_to].put(key, contents)
         self.__stores[k_from].remove(key)
 
         self.register_modify(key)
@@ -125,7 +125,7 @@ class PersistedState(State):
         self.__ensure_store(k_to)
 
         contents = self.__stores[k_from].get(key)
-        self.__stores[k_to].add(key, contents)
+        self.__stores[k_to].put(key, contents)
         self.__stores[k_from].remove(key)
 
         self.register_modify(key)
