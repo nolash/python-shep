@@ -1,4 +1,4 @@
-re_processedname = r'^_?[A-Z,\.]*$'
+re_processedname = r'^_?[A-Z\._]*$'
 
 
 class StoreFactory:
