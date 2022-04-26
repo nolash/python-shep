@@ -1,5 +1,5 @@
 - 0.2.3
-	* Add memstore
+	* Add noop-store, for convenience for code using persist constructor but will only use memory state
 - 0.2.2
 	* Fix composite state factory load regex
 - 0.2.1
