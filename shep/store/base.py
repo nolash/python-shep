@@ -13,3 +13,7 @@ class StoreFactory:
 
     def close(self):
         pass
+
+
+    def ls(self):
+        raise NotImplementedError()
