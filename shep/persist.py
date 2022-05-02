@@ -157,12 +157,14 @@ class PersistedState(State):
         if state == None:
             states_numeric = list(self.all(numeric=True))
         else:
-            #states = [self.name(state)]
             states_numeric = [state]
        
         states = []
         for state in states_numeric:
-            if not_state != None and state & not_state == 0:
+            if not_state != None:
+                if state & not_state == 0:
+                    states.append(self.name(state))
+            else:
                 states.append(self.name(state))
 
         ks = []
