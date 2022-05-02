@@ -3,7 +3,10 @@ import datetime
 
 # local imports
 from .state import State
-from .error import StateItemExists
+from .error import (
+        StateItemExists,
+        StateLockedKey,
+        )
 
 
 class PersistedState(State):
@@ -34,12 +37,13 @@ class PersistedState(State):
 
         See shep.state.State.put
         """
-        to_state = super(PersistedState, self).put(key, state=state, contents=contents)
-
-        k = self.name(to_state)
+        k = self.to_name(state)
 
         self.__ensure_store(k)
+
         self.__stores[k].put(key, contents)
+
+        super(PersistedState, self).put(key, state=state, contents=contents)
 
         self.register_modify(key)
 
@@ -56,10 +60,15 @@ class PersistedState(State):
         k_to = self.name(to_state)
         self.__ensure_store(k_to)
 
-        contents = self.__stores[k_from].get(key)
-        self.__stores[k_to].put(key, contents)
-        self.__stores[k_from].remove(key)
-
+        contents = None
+        try:
+            contents = self.__stores[k_from].get(key)
+            self.__stores[k_to].put(key, contents)
+            self.__stores[k_from].remove(key)
+        except StateLockedKey as e:
+            super(PersistedState, self).unset(key, or_state, allow_base=True)
+            raise e
+       
         self.sync(to_state)
 
         return to_state
@@ -143,6 +152,7 @@ class PersistedState(State):
         :raises StateItemExists: A content key is already recorded with a different state in memory than in persisted store.
         # :todo: if sync state is none, sync all
         """
+
         states = []
         if state == None:
             states = list(self.all())
@@ -208,10 +218,11 @@ class PersistedState(State):
 
         See shep.state.State.replace
         """
-        super(PersistedState, self).replace(key, contents)
         state = self.state(key)
         k = self.name(state)
-        return self.__stores[k].replace(key, contents)
+        r = self.__stores[k].replace(key, contents)
+        super(PersistedState, self).replace(key, contents)
+        return r
 
 
     def modified(self, key):

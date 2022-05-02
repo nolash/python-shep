@@ -32,3 +32,9 @@ class StateTransitionInvalid(Exception):
     """Raised if state transition verification fails
     """
     pass
+
+
+class StateLockedKey(Exception):
+    """Attempt to write to a state key that is being written to by another client
+    """
+    pass

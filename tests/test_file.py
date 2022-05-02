@@ -11,6 +11,7 @@ from shep.error import (
         StateExists,
         StateInvalid,
         StateItemExists,
+        StateLockedKey,
         )
 
 
@@ -255,6 +256,53 @@ class TestFileStore(unittest.TestCase):
         self.states.put('zzzz', state=self.states.BAR)
         r = self.factory.ls()
         self.assertEqual(len(r), 3)
+
+
+    def test_lock(self):
+        factory = SimpleFileStoreFactory(self.d, use_lock=True)
+        states = PersistedState(factory.add, 3)
+        states.add('foo') 
+        states.add('bar') 
+        states.add('baz') 
+        states.alias('xyzzy', states.FOO | states.BAR)
+        states.alias('plugh', states.FOO | states.BAR | states.BAZ)
+        states.put('abcd')
+
+        lock_path = os.path.join(self.d, '.lock')
+        os.stat(lock_path)
+
+        fp = os.path.join(self.d, '.lock', 'xxxx')
+        f = open(fp, 'w')
+        f.close()
+        
+        with self.assertRaises(StateLockedKey):
+            states.put('xxxx')
+
+        os.unlink(fp)
+        states.put('xxxx')
+
+        states.set('xxxx', states.FOO)
+        states.set('xxxx', states.BAR)
+        states.replace('xxxx', contents='zzzz')
+
+        fp = os.path.join(self.d, '.lock', 'xxxx')
+        f = open(fp, 'w')
+        f.close()
+
+        with self.assertRaises(StateLockedKey):
+            states.set('xxxx', states.BAZ)
+        
+        v = states.state('xxxx')
+        self.assertEqual(v, states.XYZZY)
+
+        with self.assertRaises(StateLockedKey):
+            states.unset('xxxx', states.FOO)
+
+        with self.assertRaises(StateLockedKey):
+            states.replace('xxxx', contents='yyyy')
+
+        v = states.get('xxxx')
+        self.assertEqual(v, 'zzzz')
 
 
 if __name__ == '__main__':

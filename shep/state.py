@@ -185,6 +185,12 @@ class State:
         self.__set(k, v)
 
 
+    def to_name(self, k):
+        if k == None:
+            k = 0
+        return self.name(k)
+
+
     def __alias(self, k, *args):
         v = 0
         for a in args:
@@ -436,7 +442,7 @@ class State:
         return self.__move(key, current_state, to_state)
 
 
-    def unset(self, key, not_state):
+    def unset(self, key, not_state, allow_base=False):
         """Unset a single bit, moving to a pure or alias state.
         
         The resulting state cannot be State.base_state_name (0).
@@ -462,7 +468,7 @@ class State:
         if to_state == current_state:
             raise ValueError('invalid change for state {}: {}'.format(key, not_state))
 
-        if to_state == getattr(self, self.base_state_name):
+        if to_state == getattr(self, self.base_state_name) and not allow_base:
             raise ValueError('State {} for {} cannot be reverted to {}'.format(current_state, key, self.base_state_name))
 
         new_state = self.__reverse.get(to_state)

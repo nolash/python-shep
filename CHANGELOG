@@ -1,3 +1,5 @@
+- 0.2.4
+	* Add optional concurrency lock for persistence store, implemented for file store
 - 0.2.3
 	* Add noop-store, for convenience for code using persist constructor but will only use memory state
 - 0.2.2

@@ -7,6 +7,7 @@ from .base import (
         re_processedname,
         StoreFactory,
         )
+from shep.error import StateLockedKey
 
 
 class SimpleFileStore:
@@ -15,14 +16,46 @@ class SimpleFileStore:
     :param path: Filesystem base path for all state directory
     :type path: str
     """
-    def __init__(self, path, binary=False):
+    def __init__(self, path, binary=False, lock_path=None):
         self.__path = path
         os.makedirs(self.__path, exist_ok=True)
         if binary:
             self.__m = ['rb', 'wb']
         else:
             self.__m = ['r', 'w']
+        self.__lock_path = lock_path
+        if self.__lock_path != None:
+            os.makedirs(lock_path, exist_ok=True)
 
+
+    def __is_locked(self, k):
+        if self.__lock_path == None:
+            return False
+        for v in os.listdir(self.__lock_path):
+            if k == v:
+                return True
+        return False
+       
+
+    def __lock(self, k):
+        if self.__lock_path == None:
+            return
+        if self.__is_locked(k):
+            raise StateLockedKey(k)
+        fp = os.path.join(self.__lock_path, k)
+        f = open(fp, 'w')
+        f.close()
+
+
+    def __unlock(self, k):
+        if self.__lock_path == None:
+            return
+        fp = os.path.join(self.__lock_path, k)
+        try:
+            os.unlink(fp)
+        except FileNotFoundError:
+            pass
+        
 
     def put(self, k, contents=None):
         """Add a new key and optional contents 
@@ -32,6 +65,7 @@ class SimpleFileStore:
         :param contents: Optional contents to assign for content key
         :type contents: any
         """
+        self.__lock(k)
         fp = os.path.join(self.__path, k)
         if contents == None:
             if self.__m[1] == 'wb':
@@ -42,6 +76,7 @@ class SimpleFileStore:
         f = open(fp, self.__m[1])
         f.write(contents)
         f.close()
+        self.__unlock(k)
 
 
     def remove(self, k):
@@ -51,8 +86,10 @@ class SimpleFileStore:
         :type k: str
         :raises FileNotFoundError: Content key does not exist in the state
         """
+        self.__lock(k)
         fp = os.path.join(self.__path, k)
         os.unlink(fp)
+        self.__unlock(k)
 
     
     def get(self, k):
@@ -64,10 +101,12 @@ class SimpleFileStore:
         :rtype: any
         :return: Contents
         """
+        self.__lock(k)
         fp = os.path.join(self.__path, k)
         f = open(fp, self.__m[0])
         r = f.read()
         f.close()
+        self.__unlock(k)
         return r
 
 
@@ -77,6 +116,7 @@ class SimpleFileStore:
         :rtype: list of str
         :return: Content keys in state
         """
+        self.__lock('.list')
         files = []
         for p in os.listdir(self.__path):
             fp = os.path.join(self.__path, p)
@@ -86,6 +126,7 @@ class SimpleFileStore:
             if len(r) == 0:
                 r = None
             files.append((p, r,))
+        self.__unlock('.list')
         return files
 
 
@@ -110,16 +151,20 @@ class SimpleFileStore:
         :param contents: Contents
         :type contents: any
         """
+        self.__lock(k)
         fp = os.path.join(self.__path, k)
         os.stat(fp)
         f = open(fp, self.__m[1])
         r = f.write(contents)
         f.close()
+        self.__unlock(k)
 
 
     def modified(self, k):
+        self.__lock(k)
         path = self.path(k)
         st = os.stat(path)
+        self.__unlock(k)
         return st.st_ctime
 
 
@@ -133,9 +178,10 @@ class SimpleFileStoreFactory(StoreFactory):
     :param path: Filesystem path as base path for states
     :type path: str
     """
-    def __init__(self, path, binary=False):
+    def __init__(self, path, binary=False, use_lock=False):
         self.__path = path
         self.__binary = binary
+        self.__use_lock = use_lock
 
 
     def add(self, k):
@@ -146,9 +192,13 @@ class SimpleFileStoreFactory(StoreFactory):
         :rtype: SimpleFileStore
         :return: A filesystem persistence instance with the given identifier as subdirectory
         """
+        lock_path = None
+        if self.__use_lock:
+            lock_path = os.path.join(self.__path, '.lock')
+
         k = str(k)
         store_path = os.path.join(self.__path, k)
-        return SimpleFileStore(store_path, binary=self.__binary)
+        return SimpleFileStore(store_path, binary=self.__binary, lock_path=lock_path)
 
 
     def ls(self):
