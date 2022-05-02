@@ -217,14 +217,15 @@ class State:
         return self.__alias(k, *args)    
 
 
-    def all(self, pure=False):
-        """Return list of all unique atomic and alias states.
+    def all(self, pure=False, numeric=False):
+        """Return list of all unique atomic and alias state strings.
         
         :rtype: list of ints
         :return: states
         """
         l = []
         for k in dir(self):
+            state = None
             if k[0] == '_':
                 continue
             if k.upper() != k:
@@ -233,7 +234,12 @@ class State:
                 state = self.from_name(k)
                 if not self.__is_pure(state):
                     continue
-            l.append(k)
+            if numeric:
+                if state == None:
+                    state = self.from_name(k)
+                l.append(state)
+            else:
+                l.append(k)
         l.sort()
         return l
 
@@ -628,3 +634,25 @@ class State:
         statemask = ~statemask
         statemask &= self.__limit
         return statemask
+
+
+    def purge(self, key):
+        state = self.state(key)
+        state_name = self.name(state)
+
+        import sys
+        sys.stderr.write('foo {} {}'.format(state_name, self.__keys))
+        v = self.__keys.get(state)
+        v.remove(key) 
+
+        del self.__keys_reverse[key]
+
+        try:
+            del self.__contents[key]
+        except KeyError:
+            pass
+
+        try:
+            del self.modified_last[key]
+        except KeyError:
+            pass

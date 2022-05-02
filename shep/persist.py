@@ -144,7 +144,7 @@ class PersistedState(State):
         return to_state
 
 
-    def sync(self, state=None):
+    def sync(self, state=None, not_state=None):
         """Reload resources for a single state in memory from the persisted state store.
 
         :param state: State to load
@@ -153,11 +153,17 @@ class PersistedState(State):
         # :todo: if sync state is none, sync all
         """
 
-        states = []
+        states_numeric = []
         if state == None:
-            states = list(self.all())
+            states_numeric = list(self.all(numeric=True))
         else:
-            states = [self.name(state)]
+            #states = [self.name(state)]
+            states_numeric = [state]
+       
+        states = []
+        for state in states_numeric:
+            if not_state != None and state & not_state == 0:
+                states.append(self.name(state))
 
         ks = []
         for k in states:

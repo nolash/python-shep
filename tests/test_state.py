@@ -7,6 +7,7 @@ from shep import State
 from shep.error import (
         StateExists,
         StateInvalid,
+        StateItemNotFound,
         )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -248,6 +249,25 @@ class TestState(unittest.TestCase):
         states.alias('all', states.FOO | states.BAR | states.BAZ)
         mask = states.mask('xyzzy')
         self.assertEqual(mask, states.ALL)
+
+
+    def test_remove(self):
+        states = State(1)
+        states.add('foo')
+
+        states.put('xyzzy', contents='plugh')
+        v = states.get('xyzzy')
+        self.assertEqual(v, 'plugh')
+
+        states.next('xyzzy')
+
+        v = states.state('xyzzy')
+        self.assertEqual(states.FOO, v)
+
+        states.purge('xyzzy')
+       
+        with self.assertRaises(StateItemNotFound):
+            states.state('xyzzy')
 
 
 if __name__ == '__main__':
