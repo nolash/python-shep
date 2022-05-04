@@ -640,8 +640,6 @@ class State:
         state = self.state(key)
         state_name = self.name(state)
 
-        import sys
-        sys.stderr.write('foo {} {}'.format(state_name, self.__keys))
         v = self.__keys.get(state)
         v.remove(key) 
 
