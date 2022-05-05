@@ -28,22 +28,17 @@ class SimpleFileStore:
             os.makedirs(lock_path, exist_ok=True)
 
 
-    def __is_locked(self, k):
-        if self.__lock_path == None:
-            return False
-        for v in os.listdir(self.__lock_path):
-            if k == v:
-                return True
-        return False
-       
-
     def __lock(self, k):
         if self.__lock_path == None:
             return
-        if self.__is_locked(k):
-            raise StateLockedKey(k)
         fp = os.path.join(self.__lock_path, k)
-        f = open(fp, 'w')
+        f = None
+        try:
+            f = open(fp, 'x')
+        except FileExistsError:
+            pass
+        if f == None:
+            raise StateLockedKey(k)
         f.close()
 
 

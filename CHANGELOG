@@ -1,3 +1,7 @@
+- 0.2.6
+	* Ensure atomic state lock in fs
+- 0.2.5
+	* Correct handling of persistent sync when no not-state filter has been set
 - 0.2.4
 	* Add optional concurrency lock for persistence store, implemented for file store
 - 0.2.3
