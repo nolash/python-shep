@@ -1,3 +1,5 @@
+- 0.2.7
+	* Handle missing files in fs readdir list
 - 0.2.6
 	* Ensure atomic state lock in fs
 - 0.2.5

@@ -115,7 +115,11 @@ class SimpleFileStore:
         files = []
         for p in os.listdir(self.__path):
             fp = os.path.join(self.__path, p)
-            f = open(fp, self.__m[0])
+            f = None
+            try:
+                f = open(fp, self.__m[0])
+            except FileNotFoundError:
+                continue
             r = f.read()
             f.close()
             if len(r) == 0:
