@@ -270,5 +270,40 @@ class TestState(unittest.TestCase):
             states.state('xyzzy')
 
 
+    def test_elements(self):
+        states = State(2)
+        states.add('foo')
+        states.add('bar')
+        states.alias('baz', states.FOO, states.BAR)
+
+        v = states.elements(states.BAZ)
+        self.assertIn('FOO', v)
+        self.assertIn('BAR', v)
+        self.assertIsInstance(v, str)
+
+        v = states.elements(states.BAZ, numeric=True)
+        self.assertIn(states.FOO, v)
+        self.assertIn(states.BAR, v)
+
+        v = states.elements(states.BAZ, as_string=False)
+        self.assertIn('FOO', v)
+        self.assertIn('BAR', v)
+        self.assertNotIsInstance(v, str)
+        self.assertIsInstance(v, list)
+
+
+    def test_pure(self):
+        states = State(2)
+        states.add('foo')
+        states.add('bar')
+        states.alias('baz', states.FOO, states.BAR)
+
+        v = states.is_pure(states.BAZ)
+        self.assertFalse(v)
+
+        v = states.is_pure(states.FOO)
+        self.assertTrue(v)
+
+
 if __name__ == '__main__':
     unittest.main()

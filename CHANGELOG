@@ -1,3 +1,8 @@
+- 0.2.9
+	* Enable access to is_pure method
+	* Numeric option for elements return value
+- 0.2.8
+	* Remove sync on persist set
 - 0.2.7
 	* Handle missing files in fs readdir list
 - 0.2.6

@@ -69,7 +69,7 @@ class PersistedState(State):
             super(PersistedState, self).unset(key, or_state, allow_base=True)
             raise e
        
-        self.sync(to_state)
+        #self.sync(to_state)
 
         return to_state
 

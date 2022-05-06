@@ -53,7 +53,7 @@ class State:
 
 
     # return true if v is a single-bit state
-    def __is_pure(self, v):
+    def is_pure(self, v):
         if v == 0:
             return True
         c = 1
@@ -139,7 +139,7 @@ class State:
     def __add_state_list(self, state, item):
         if self.__keys.get(state) == None:
             self.__keys[state] = []
-        if not self.__is_pure(state) or state == 0:
+        if not self.is_pure(state) or state == 0:
             self.__keys[state].append(item)
         c = 1
         for i in range(self.__bits):
@@ -196,7 +196,7 @@ class State:
         for a in args:
             a = self.__check_value_cursor(a)
             v = self.__check_limit(v | a, pure=False)
-        if self.__is_pure(v):
+        if self.is_pure(v):
             raise ValueError('use add to add pure values')
         return self.__set(k, v)
 
@@ -232,7 +232,7 @@ class State:
                 continue
             if pure:
                 state = self.from_name(k)
-                if not self.__is_pure(state):
+                if not self.is_pure(state):
                     continue
             if numeric:
                 if state == None:
@@ -244,15 +244,22 @@ class State:
         return l
 
 
-    def elements(self, v):
+    def elements(self, v, numeric=False, as_string=True):
         r = []
         if v == None or v == 0:
             return self.base_state_name
         c = 1
         for i in range(self.__bits):
             if v & c > 0:
-                r.append(self.name(c))
+                if numeric:
+                    r.append(c)
+                else:
+                    r.append(self.name(c))
             c <<= 1
+
+        if numeric or not as_string:
+            return r
+
         return '_' + '.'.join(r)
 
 
@@ -433,7 +440,7 @@ class State:
         :rtype: int
         :returns: Resulting state
         """
-        if not self.__is_pure(or_state):
+        if not self.is_pure(or_state):
             raise ValueError('can only apply using single bit states')
 
         current_state = self.__keys_reverse.get(key)
@@ -463,7 +470,7 @@ class State:
         :rtype: int
         :returns: Resulting state
         """
-        if not self.__is_pure(not_state):
+        if not self.is_pure(not_state):
             raise ValueError('can only apply using single bit states')
 
         current_state = self.__keys_reverse.get(key)
@@ -579,7 +586,7 @@ class State:
         state = self.__keys_reverse.get(key)
         if state == None:
             raise StateItemNotFound(key)
-        if not self.__is_pure(state):
+        if not self.is_pure(state):
             raise StateInvalid('cannot run next on an alias state')
        
         if state == 0:
