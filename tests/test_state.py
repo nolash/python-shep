@@ -292,6 +292,15 @@ class TestState(unittest.TestCase):
         self.assertIsInstance(v, list)
 
 
+    def test_count(self):
+        states = State(3)
+        states.add('foo')
+        states.add('bar')
+        self.assertEqual(states.count(), 2)
+        states.add('baz')
+        self.assertEqual(states.count(), 3)
+
+
     def test_pure(self):
         states = State(2)
         states.add('foo')
@@ -303,6 +312,14 @@ class TestState(unittest.TestCase):
 
         v = states.is_pure(states.FOO)
         self.assertTrue(v)
+
+
+    def test_default(self):
+        states = State(2, default_state='FOO')
+        with self.assertRaises(StateItemNotFound):
+            states.state('NEW')
+        getattr(states, 'FOO')
+        states.state('FOO')
 
 
 if __name__ == '__main__':

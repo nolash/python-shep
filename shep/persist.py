@@ -20,8 +20,8 @@ class PersistedState(State):
     :type logger: object
     """
 
-    def __init__(self, factory, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
-        super(PersistedState, self).__init__(bits, logger=logger, verifier=verifier, check_alias=check_alias, event_callback=event_callback)
+    def __init__(self, factory, bits, logger=None, verifier=None, check_alias=True, event_callback=None, default_state=None):
+        super(PersistedState, self).__init__(bits, logger=logger, verifier=verifier, check_alias=check_alias, event_callback=event_callback, default_state=default_state)
         self.__store_factory = factory
         self.__stores = {}
 

@@ -30,16 +30,22 @@ class State:
 
     base_state_name = 'NEW'
 
-    def __init__(self, bits, logger=None, verifier=None, check_alias=True, event_callback=None):
+    def __init__(self, bits, logger=None, verifier=None, check_alias=True, event_callback=None, default_state=None):
         self.__initial_bits = bits
         self.__bits = bits
         self.__limit = (1 << bits) - 1
         self.__c = 0
-        setattr(self, self.base_state_name, 0)
 
-        self.__reverse = {0: getattr(self, self.base_state_name)}
-        self.__keys = {getattr(self, self.base_state_name): []}
+        if default_state == None:
+            default_state = self.base_state_name
+
+        setattr(self, default_state, 0)
+
+        self.__reverse = {0: getattr(self, default_state)}
+        self.__keys = {getattr(self, default_state): []}
         self.__keys_reverse = {}
+        if default_state != self.base_state_name:
+            self.__keys_reverse[default_state] = 0
         self.__contents = {}
         self.modified_last = {}
         self.verifier = verifier
@@ -661,3 +667,7 @@ class State:
             del self.modified_last[key]
         except KeyError:
             pass
+
+
+    def count(self):
+        return self.__c

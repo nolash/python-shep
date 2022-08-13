@@ -1,3 +1,6 @@
+- 0.2.10
+	* Add count active states method
+	* Enable complete replace of NEW state on state instantiation
 - 0.2.9
 	* Enable access to is_pure method
 	* Numeric option for elements return value
