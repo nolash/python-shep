@@ -1,0 +1,1 @@
+Rocksdb extension requires python 3.9, as it uses lbry-rocksdb which at the time of writing (13.10.2022) does not have a package available for python 3.10.
