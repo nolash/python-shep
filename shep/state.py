@@ -15,6 +15,10 @@ from shep.error import (
 
 re_name = r'^[a-zA-Z_\.]+$'
 
+def to_elements(states):
+    return '_' + '.'.join(states)
+
+
 class State:
     """State is an in-memory bitmasked state store for key-value pairs, or even just keys alone.
 
@@ -270,7 +274,7 @@ class State:
         if numeric or not as_string:
             return r
 
-        return '_' + '.'.join(r)
+        return to_elements(r) #'_' + '.'.join(r)
 
 
     def from_elements(self, k):

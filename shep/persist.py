@@ -2,7 +2,10 @@
 import datetime
 
 # local imports
-from .state import State
+from .state import (
+        State,
+        to_elements,
+        )
 from .error import (
         StateItemExists,
         StateLockedKey,
@@ -32,7 +35,6 @@ class PersistedState(State):
         k = k.upper()
         if self.__stores.get(k) == None:
             self.__stores[k] = self.__store_factory(k)
-            print('ensure {}'.format(k))
 
 
     def put(self, key, contents=None, state=None):
@@ -245,3 +247,9 @@ class PersistedState(State):
     def add(self, key):
         self.__ensure_store(key)
         super(PersistedState, self).add(key)
+
+
+    def alias(self, key, *args):
+        v = to_elements(key)
+        self.__ensure_store(key)
+        super(PersistedState, self).alias(key, *args)
