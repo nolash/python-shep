@@ -36,16 +36,20 @@ class State:
         self.__limit = (1 << bits) - 1
         self.__c = 0
 
+        self.__keys_reverse = {}
+
         if default_state == None:
             default_state = self.base_state_name
+        else:
+            default_state = self.__check_name_valid(default_state)
+            self.base_state_name = default_state
+            self.__keys_reverse[default_state] = 0
 
         setattr(self, default_state, 0)
 
-        self.__reverse = {0: getattr(self, default_state)}
-        self.__keys = {getattr(self, default_state): []}
-        self.__keys_reverse = {}
-        if default_state != self.base_state_name:
-            self.__keys_reverse[default_state] = 0
+        self.__reverse = {0: default_state}
+        self.__keys = {0: []}
+
         self.__contents = {}
         self.modified_last = {}
         self.verifier = verifier
@@ -309,6 +313,8 @@ class State:
         :return: Numeric state value
         """
         k = self.__check_name_valid(k)
+        if k == self.base_state_name:
+            return 0
         return getattr(self, k)
 
 
@@ -416,16 +422,19 @@ class State:
             raise StateCorruptionError(to_state)
 
         if self.verifier != None:
-            r = self.verifier(self, from_state, to_state)
+            r = self.verifier(self, key, from_state, to_state)
             if r != None:
                 raise StateTransitionInvalid(r)
 
-        current_state_list.pop(idx) 
-
+        old_state = self.__keys_reverse.get(key)
         if self.event_callback != None:
-            old_state = self.__keys_reverse.get(key)
             self.event_callback(key, self.name(old_state), self.name(to_state))
 
+        if old_state == 0:
+            current_state_list.pop(idx)
+        else:
+            for k in self.elements(from_state, numeric=True):
+                self.__keys[k].remove(key)
         self.__add_state_list(to_state, key)
 
         self.register_modify(key)
@@ -542,6 +551,7 @@ class State:
         :rtype: any
         :returns: Content
         """
+        print('contents {}'.format(self.__contents))
         return self.__contents.get(key)
 
 

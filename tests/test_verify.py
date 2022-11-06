@@ -8,7 +8,7 @@ from shep.error import (
         )
 
 
-def mock_verify(state, from_state, to_state):
+def mock_verify(state, key, from_state, to_state):
     if from_state == state.FOO:
         if to_state == state.BAR:
             return 'bar cannot follow foo'

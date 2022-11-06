@@ -1,6 +1,7 @@
 # standard imports
 import os
 import re
+import stat
 
 # local imports
 from .base import (
@@ -204,8 +205,25 @@ class SimpleFileStoreFactory(StoreFactory):
         r = []
         for v in os.listdir(self.__path):
             if re.match(re_processedname, v):
-                r.append(v)
+                fp = os.path.join(self.__path, v)
+                st = os.stat(fp)
+                if stat.S_ISDIR(st.st_mode):
+                    r.append(v)
         return r
+
+
+    def have(self, k):
+        lock_path = None
+        if self.__use_lock:
+            lock_path = os.path.join(self.__path, '.lock')
+        for d in self.ls():
+            p = os.path.join(self.__path, d)
+            s = SimpleFileStore(p, binary=self.__binary, lock_path=lock_path)
+            try:
+                s.get(k)
+            except:
+                return False
+            return True
 
 
     def close(self):

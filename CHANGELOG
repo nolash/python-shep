@@ -1,3 +1,7 @@
+- 0.3.0
+	* Clean up lingering keys in lists when moving from alias state
+	* Properly set default state when set through instantiation
+	* pass key to verifier (breaking change)
 - 0.2.10
 	* Add count active states method
 	* Enable complete replace of NEW state on state instantiation

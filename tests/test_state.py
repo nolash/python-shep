@@ -318,8 +318,42 @@ class TestState(unittest.TestCase):
         states = State(2, default_state='FOO')
         with self.assertRaises(StateItemNotFound):
             states.state('NEW')
-        getattr(states, 'FOO')
+        r = getattr(states, 'FOO')
+        self.assertEqual(r, 0)
         states.state('FOO')
+        states.put('bar')
+        r = states.list(states.FOO)
+        print(r)
+        self.assertEqual(len(r), 1)
+
+
+    def test_unset(self):
+        states = State(2)
+        states.add('one')
+        states.add('two')
+        states.alias('three', states.ONE, states.TWO)
+        states.put('foo', state=states.ONE)
+        states.set('foo', states.TWO)
+        r = states.list(states.ONE)
+        self.assertEqual(len(r), 1)
+        r = states.list(states.TWO)
+        self.assertEqual(len(r), 1)
+        r = states.unset('foo', states.ONE)
+        r = states.list(states.ONE)
+        self.assertEqual(len(r), 0)
+        r = states.list(states.TWO)
+        self.assertEqual(len(r), 1)
+
+
+    def test_move(self):
+        states = State(1)
+        states.add('one')
+        states.put('foo')
+        r = states.list(states.NEW)
+        self.assertEqual(len(r), 1)
+        states.move('foo', states.ONE)
+        r = states.list(states.NEW)
+        self.assertEqual(len(r), 0)
 
 
 if __name__ == '__main__':
