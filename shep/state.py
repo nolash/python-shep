@@ -551,7 +551,6 @@ class State:
         :rtype: any
         :returns: Content
         """
-        print('contents {}'.format(self.__contents))
         return self.__contents.get(key)
 
 
