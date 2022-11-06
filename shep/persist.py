@@ -24,12 +24,15 @@ class PersistedState(State):
         super(PersistedState, self).__init__(bits, logger=logger, verifier=verifier, check_alias=check_alias, event_callback=event_callback, default_state=default_state)
         self.__store_factory = factory
         self.__stores = {}
+        self.__ensure_store(self.base_state_name)
 
 
     # Create state store container if missing.
     def __ensure_store(self, k):
+        k = k.upper()
         if self.__stores.get(k) == None:
             self.__stores[k] = self.__store_factory(k)
+            print('ensure {}'.format(k))
 
 
     def put(self, key, contents=None, state=None):
@@ -74,7 +77,7 @@ class PersistedState(State):
         return to_state
 
 
-    def unset(self, key, not_state):
+    def unset(self, key, not_state, allow_base=False):
         """Persist a new state for a key or key/content.
 
         See shep.state.State.unset
@@ -82,7 +85,7 @@ class PersistedState(State):
         from_state = self.state(key)
         k_from = self.name(from_state)
 
-        to_state = super(PersistedState, self).unset(key, not_state)
+        to_state = super(PersistedState, self).unset(key, not_state, allow_base=allow_base)
 
         k_to = self.name(to_state)
         self.__ensure_store(k_to)
@@ -237,3 +240,8 @@ class PersistedState(State):
         state = self.state(key)
         k = self.name(state)
         return self.__stores[k].modified(key)
+
+
+    def add(self, key):
+        self.__ensure_store(key)
+        super(PersistedState, self).add(key)

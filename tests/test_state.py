@@ -323,7 +323,6 @@ class TestState(unittest.TestCase):
         states.state('FOO')
         states.put('bar')
         r = states.list(states.FOO)
-        print(r)
         self.assertEqual(len(r), 1)
 
 

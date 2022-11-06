@@ -473,12 +473,14 @@ class State:
     def unset(self, key, not_state, allow_base=False):
         """Unset a single bit, moving to a pure or alias state.
         
-        The resulting state cannot be State.base_state_name (0).
+        If allow_base is set to False, The resulting state cannot be State.base_state_name (0).
          
         :param key: Content key to modify state for
         :type key: str
         :param or_state: Atomic stat to add
         :type or_state: int
+        :paran allow_base: Allow state to be reset to 0
+        :type allow_base: bool
         :raises ValueError: State is not a single bit state, or attempts to revert to State.base_state_name
         :raises StateItemNotFound: Content key is not registered
         :raises StateInvalid: Resulting state after addition of atomic state is unknown

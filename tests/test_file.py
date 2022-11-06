@@ -244,18 +244,21 @@ class TestFileStore(unittest.TestCase):
 
 
     def test_factory_ls(self):
+        r = self.factory.ls()
+        self.assertEqual(len(r), 4)
+
         self.states.put('abcd')
         self.states.put('xxxx', state=self.states.BAZ)
         r = self.factory.ls()
-        self.assertEqual(len(r), 2)
+        self.assertEqual(len(r), 4)
 
         self.states.put('yyyy', state=self.states.BAZ)
         r = self.factory.ls()
-        self.assertEqual(len(r), 2)
+        self.assertEqual(len(r), 4)
 
         self.states.put('zzzz', state=self.states.BAR)
         r = self.factory.ls()
-        self.assertEqual(len(r), 3)
+        self.assertEqual(len(r), 4)
 
 
     def test_lock(self):
