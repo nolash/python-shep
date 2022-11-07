@@ -15,8 +15,16 @@ from shep.error import (
 
 re_name = r'^[a-zA-Z_\.]+$'
 
-def to_elements(states):
-    return '_' + '.'.join(states)
+def join_elements(states):
+    return '_' + '__'.join(states)
+
+
+def split_elements(s):
+    if len(s) == 0:
+        return []
+    if s[0] == '_':
+        s = s[1:]
+    return s.split('__')
 
 
 class State:
@@ -212,6 +220,7 @@ class State:
             v = self.__check_limit(v | a, pure=False)
         if self.is_pure(v):
             raise ValueError('use add to add pure values')
+        k = k.replace('.', '__')
         return self.__set(k, v)
 
 
@@ -231,7 +240,7 @@ class State:
         return self.__alias(k, *args)    
 
 
-    def all(self, pure=False, numeric=False):
+    def all(self, pure=False, numeric=False, ignore_auto=True):
         """Return list of all unique atomic and alias state strings.
         
         :rtype: list of ints
@@ -240,7 +249,7 @@ class State:
         l = []
         for k in dir(self):
             state = None
-            if k[0] == '_':
+            if k[0] == '_' and ignore_auto:
                 continue
             if k.upper() != k:
                 continue
@@ -264,7 +273,7 @@ class State:
             return self.base_state_name
         c = 1
         for i in range(self.__bits):
-            if v & c > 0:
+            if (v & c) > 0:
                 if numeric:
                     r.append(c)
                 else:
@@ -274,14 +283,17 @@ class State:
         if numeric or not as_string:
             return r
 
-        return to_elements(r) #'_' + '.'.join(r)
+        if len(r) == 1:
+            return self.name(v)
+
+        return join_elements(r) #'_' + '.'.join(r)
 
 
     def from_elements(self, k):
         r = 0
         if k[0] != '_':
             raise ValueError('elements string must start with underscore (_), got {}'.format(k))
-        for v in k[1:].split('.'):
+        for v in k[1:].split('__'):
             r |= self.from_name(v) 
         return r
 

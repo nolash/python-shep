@@ -4,7 +4,6 @@ import datetime
 # local imports
 from .state import (
         State,
-        to_elements,
         )
 from .error import (
         StateItemExists,
@@ -149,7 +148,7 @@ class PersistedState(State):
         return to_state
 
 
-    def sync(self, state=None, not_state=None):
+    def sync(self, state=None, not_state=None, ignore_auto=True):
         """Reload resources for a single state in memory from the persisted state store.
 
         :param state: State to load
@@ -160,7 +159,7 @@ class PersistedState(State):
 
         states_numeric = []
         if state == None:
-            states_numeric = list(self.all(numeric=True))
+            states_numeric = list(self.all(numeric=True, ignore_auto=ignore_auto))
         else:
             states_numeric = [state]
        
@@ -250,6 +249,5 @@ class PersistedState(State):
 
 
     def alias(self, key, *args):
-        v = to_elements(key)
         self.__ensure_store(key)
         super(PersistedState, self).alias(key, *args)
