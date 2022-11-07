@@ -1,8 +1,10 @@
 - 0.3.0
 	* Clean up lingering keys in lists when moving from alias state
 	* Properly set default state when set through instantiation
-	* pass key to verifier (breaking change)
-	* ensure all states persisted even if empty
+	* Pass key to verifier (breaking change)
+	* Ensure all states and aliases persisted even if empty
+	* Allow auto-generated aliases when listing all states
+	* Reformat auto-generated aliases, double underscore instead of dot (breaking change)
 - 0.2.10
 	* Add count active states method
 	* Enable complete replace of NEW state on state instantiation
