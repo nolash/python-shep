@@ -240,14 +240,29 @@ class State:
         return self.__alias(k, *args)    
 
 
-    def all(self, pure=False, numeric=False, ignore_auto=True):
+    def __all_bit(self):
+        r = []
+        r.append(self.name(0))
+        v = 1
+        while v < self.__limit:
+            r.append(self.name(v))
+            v <<= 1
+        return r
+
+
+    def all(self, pure=False, numeric=False, ignore_auto=True, bit_order=False):
         """Return list of all unique atomic and alias state strings.
         
         :rtype: list of ints
         :return: states
         """
         l = []
-        for k in dir(self):
+        v = None
+        if bit_order:
+            v = self.__all_bit()
+        else:
+            v = dir(self)
+        for k in v:
             state = None
             if k[0] == '_' and ignore_auto:
                 continue
@@ -263,7 +278,8 @@ class State:
                 l.append(state)
             else:
                 l.append(k)
-        l.sort()
+        if not bit_order:
+            l.sort()
         return l
 
 
