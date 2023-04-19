@@ -355,5 +355,14 @@ class TestState(unittest.TestCase):
         self.assertEqual(len(r), 0)
 
 
+
+    def test_generate_missing(self):
+        states = State(3)
+        with self.assertRaises(StateInvalid):
+            states.from_elements("_FOO__BAR")
+        states.from_elements("_FOO__BAR", create_missing=True)
+
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,3 +1,5 @@
+- 0.3.1
+	* Add option to create missing pure state from from_elements call.
 - 0.3.0
 	* Clean up lingering keys in lists when moving from alias state
 	* Properly set default state when set through instantiation

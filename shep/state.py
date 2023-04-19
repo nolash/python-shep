@@ -205,6 +205,7 @@ class State:
         k = self.__check_name(k)
         v = self.__check_value(v)
         self.__set(k, v)
+        return v
 
 
     def to_name(self, k):
@@ -305,12 +306,25 @@ class State:
         return join_elements(r) #'_' + '.'.join(r)
 
 
-    def from_elements(self, k):
+    def from_elements(self, k, create_missing=False):
         r = 0
         if k[0] != '_':
             raise ValueError('elements string must start with underscore (_), got {}'.format(k))
         for v in k[1:].split('__'):
-            r |= self.from_name(v) 
+            state = None
+            print("state {} {}".format(v, k))
+            try:
+                state = self.from_name(v) 
+            except AttributeError as e:
+                pass
+
+            if state == None:
+                if not create_missing: 
+                    raise StateInvalid(v)
+                state = self.add(v)
+            print("state {} {} {}".format(v, k, state))
+
+            r |= state
         return r
 
 

@@ -4,10 +4,12 @@ import datetime
 # local imports
 from .state import (
         State,
+        split_elements,
         )
 from .error import (
         StateItemExists,
         StateLockedKey,
+        StateExists,
         )
 
 
@@ -130,6 +132,19 @@ class PersistedState(State):
         return self.__movestore(key, from_state, to_state)
 
 
+    def __ensure_parts(self, state):
+        if self.is_pure(state):
+            return
+        state_name = self.name(state)
+        parts = split_elements(state_name)
+        for k in parts:
+            try:
+                self.add(k)
+            except StateExists:
+                pass
+            self.__ensure_store(k)
+
+
     # common procedure for safely moving a persisted resource from one state to another.
     def __movestore(self, key, from_state, to_state):
         k_from = self.name(from_state)
@@ -140,6 +155,8 @@ class PersistedState(State):
         contents = self.__stores[k_from].get(key)
         self.__stores[k_to].put(key, contents)
         self.__stores[k_from].remove(key)
+
+        self.__ensure_parts(to_state)
 
         self.register_modify(key)
 
@@ -245,7 +262,7 @@ class PersistedState(State):
 
     def add(self, key):
         self.__ensure_store(key)
-        super(PersistedState, self).add(key)
+        return super(PersistedState, self).add(key)
 
 
     def alias(self, key, *args):
