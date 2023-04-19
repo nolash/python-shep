@@ -1,3 +1,5 @@
+- 0.3.2
+	* Remove stray stdout output
 - 0.3.1
 	* Add option to create missing pure state from from_elements call.
 - 0.3.0

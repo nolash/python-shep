@@ -312,7 +312,6 @@ class State:
             raise ValueError('elements string must start with underscore (_), got {}'.format(k))
         for v in k[1:].split('__'):
             state = None
-            print("state {} {}".format(v, k))
             try:
                 state = self.from_name(v) 
             except AttributeError as e:
@@ -322,7 +321,6 @@ class State:
                 if not create_missing: 
                     raise StateInvalid(v)
                 state = self.add(v)
-            print("state {} {} {}".format(v, k, state))
 
             r |= state
         return r
