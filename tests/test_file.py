@@ -308,5 +308,15 @@ class TestFileStore(unittest.TestCase):
         self.assertEqual(v, 'zzzz')
 
 
+    def test_file_set_same(self):
+        self.states.alias('xyzzy', self.states.FOO | self.states.BAR)
+        item = 'abcd'
+        self.states.put(item)
+        self.states.set(item, self.states.BAR)
+        self.states.state(item) == self.states.XYZZY
+        self.states.set(item, self.states.BAR)
+        self.states.state(item) == self.states.XYZZY
+
+
 if __name__ == '__main__':
     unittest.main()

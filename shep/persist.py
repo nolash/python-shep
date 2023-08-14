@@ -60,6 +60,8 @@ class PersistedState(State):
         See shep.state.State.set
         """
         from_state = self.state(key)
+        if from_state & or_state == or_state:
+            return
         k_from = self.name(from_state)
 
         to_state = super(PersistedState, self).set(key, or_state)

@@ -84,5 +84,14 @@ class TestStateItems(unittest.TestCase):
         self.assertIsNone(self.mockstore.v.get(item))
 
 
+    def test_persist_set_same(self):
+        item = b'foo'
+        self.states.put(item)
+        self.states.set(item, self.states.BAR)
+        self.states.state(item) == self.states.PLUGH
+        self.states.set(item, self.states.BAR)
+        self.states.state(item) == self.states.PLUGH
+
+
 if __name__ == '__main__':
     unittest.main()

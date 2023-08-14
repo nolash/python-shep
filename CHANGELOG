@@ -1,3 +1,7 @@
+- 0.3.4
+	* Fix persisted store bug deleting item whose value is same after set()
+- 0.3.3
+	* No change
 - 0.3.2
 	* Remove stray stdout output
 - 0.3.1

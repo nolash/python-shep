@@ -12,7 +12,6 @@ from shep.error import (
         StateCorruptionError,
         )
 
-
 re_name = r'^[a-zA-Z_\.]+$'
 
 def join_elements(states):
@@ -426,7 +425,6 @@ class State:
             self.__contents[key] = contents
 
         self.register_modify(key)
-
         return state
                                 
 
