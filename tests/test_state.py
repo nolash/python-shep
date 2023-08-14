@@ -363,6 +363,23 @@ class TestState(unittest.TestCase):
         states.from_elements("_FOO__BAR", create_missing=True)
 
 
+    def test_set_same(self):
+        states = State(4, check_alias=False)
+        states.add('one')
+        states.add('two')
+        states.add('three')
+        states.put('foo')
+        states.next('foo')
+        self.assertEqual(states.state('foo'), states.ONE)
+        states.set('foo', states.TWO)
+        self.assertEqual(states.state('foo'), states.ONE | states.TWO)
+        self.assertEqual(states.state('foo'), states._ONE__TWO)
+
+        states.alias('onetwo', states.ONE, states.TWO)
+        states.set('foo', states.TWO)
+        self.assertEqual(states.state('foo'), states.ONETWO)
+        self.assertEqual(states.state('foo'), states._ONE__TWO)
+
 
 if __name__ == '__main__':
     unittest.main()

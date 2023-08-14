@@ -1,6 +1,8 @@
 # standard imports
 import re
 import datetime
+import logging
+logg = logging.getLogger()
 
 # local imports
 from shep.error import (
@@ -481,6 +483,7 @@ class State:
 
         self.register_modify(key)
 
+        logg.debug('move {} {} {}'.format(key, from_state, to_state))
         return to_state
    
 
@@ -508,7 +511,7 @@ class State:
         new_state = self.__reverse.get(to_state)
         if new_state == None and self.check_alias:
             raise StateInvalid('resulting to state is unknown: {}'.format(to_state))
-
+        
         return self.__move(key, current_state, to_state)
 
 

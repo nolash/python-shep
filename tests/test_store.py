@@ -11,6 +11,7 @@ from shep.error import (
         StateItemNotFound,
         )
 
+logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
 
 
@@ -83,14 +84,6 @@ class TestStateItems(unittest.TestCase):
         #self.assertEqual(self.mockstore.for_state, self.states.name(self.states.BAZ))
         self.assertIsNone(self.mockstore.v.get(item))
 
-
-    def test_persist_set_same(self):
-        item = b'foo'
-        self.states.put(item)
-        self.states.set(item, self.states.BAR)
-        self.states.state(item) == self.states.PLUGH
-        self.states.set(item, self.states.BAR)
-        self.states.state(item) == self.states.PLUGH
 
 
 if __name__ == '__main__':

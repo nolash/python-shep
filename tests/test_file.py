@@ -308,14 +308,31 @@ class TestFileStore(unittest.TestCase):
         self.assertEqual(v, 'zzzz')
 
 
-    def test_file_set_same(self):
-        self.states.alias('xyzzy', self.states.FOO | self.states.BAR)
+    def test_persist_set_same(self):
         item = 'abcd'
+        self.states.alias('xyzzy', self.states.FOO, self.states.BAR)
         self.states.put(item)
+        self.states.state(item)
+        self.states.next(item)
         self.states.set(item, self.states.BAR)
-        self.states.state(item) == self.states.XYZZY
+        self.assertEqual(self.states.state(item), self.states.XYZZY)
+      
         self.states.set(item, self.states.BAR)
-        self.states.state(item) == self.states.XYZZY
+        self.assertEqual(self.states.state(item), self.states.XYZZY)
+
+        d = tempfile.mkdtemp()
+        self.factory = SimpleFileStoreFactory(d)
+        states = PersistedState(self.factory.add, 3, check_alias=False)
+        item = 'abcd'
+        states.add('foo') 
+        states.add('bar') 
+        states.add('baz') 
+        states.put(item)
+        states.state(item)
+        states.next(item)
+        states.set(item, self.states.BAR)
+        self.assertEqual(states.state(item), states.FOO | states.BAR)
+        self.assertEqual(states.state(item), states._FOO__BAR)
 
 
 if __name__ == '__main__':
