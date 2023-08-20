@@ -1,8 +1,6 @@
 # standard imports
 import re
 import datetime
-import logging
-logg = logging.getLogger()
 
 # local imports
 from shep.error import (
@@ -149,7 +147,8 @@ class State:
     def __set(self, k, v):
         setattr(self, k, v)
         self.__reverse[v] = k
-        self.__c += 1
+        if k[0] != '_':
+            self.__c += 1
 
 
     # check validity of key to register state for
@@ -483,7 +482,6 @@ class State:
 
         self.register_modify(key)
 
-        logg.debug('move {} {} {}'.format(key, from_state, to_state))
         return to_state
    
 

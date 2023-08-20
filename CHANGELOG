@@ -1,3 +1,8 @@
+- 0.3.6
+	* Remove logging import in state base class
+	* Skip advance state counter when adding a composite key
+- 0.3.5
+	* Upgrade project state to beta
 - 0.3.4
 	* Fix persisted store bug deleting item whose value is same after set()
 - 0.3.3
